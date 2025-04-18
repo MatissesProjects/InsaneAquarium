@@ -1,0 +1,59 @@
+#game-container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+svg { 
+    background: #003;
+}
+
+.fish {
+    stroke: black;
+    stroke-width: 2;
+}
+
+.food {
+    stroke: brown;
+    stroke-width: 1;
+}
+
+#shop-container {
+    /* position: absolute; */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;               /* adjust to taste */
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: row;       /* lay out items side‑by‑side */
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 10px;
+    box-sizing: border-box;
+    z-index: 10;
+    color: white;
+    font-family: sans-serif;
+    gap: 8px;                  /* space between items */
+    padding: 8px;
+}
+
+.shop-item {
+    flex: 0 0 auto;
+    background: #222;
+    border: 2px solid #555;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+    display: flex;
+    flex-direction: column;    /* keep label above cost */
+    align-items: center;
+}
+
+.shop-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}

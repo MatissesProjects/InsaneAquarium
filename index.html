@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Insaniquarium Overlay</title>
+  <!-- <link rel="stylesheet" href="./public/styles.css"/> -->
+</head>
+<body>
+  <div id="game-container">
+    <div id="shop-container"></div>
+    <svg id="game-canvas" viewBox="0 0 800 350" preserveAspectRatio="xMidYMid meet">
+      <!-- Entities will be <circle class="fish">, <text class="coin">, etc. -->
+    </svg>
+  </div>
+
+  <!-- STUB for local dev: -->
+  <script>
+    window.Twitch = {
+      ext: {
+        onAuthorized(cb) {
+          console.log('[TwitchStub] onAuthorized → LOCAL_AUTH');
+          cb({ channelId: 'LOCAL_CH', userId: 'LOCAL_USER', token: 'LOCAL_TOKEN' });
+        },
+        listen(topic, handler) {
+          console.log('[TwitchStub] listen(', topic, ')');
+          // no-op: you can manually fire `handler(...)` from console if you like
+        }
+      }
+    };
+  </script>
+
+  <!-- Twitch Extension Helper (only active in Twitch, safe to include locally) -->
+  <!-- <script src="https://extension-files.twitch.tv/helper/v1/twitch-ext.min.js"></script> -->
+  <!-- Our ES module entry point -->
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
