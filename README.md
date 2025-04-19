@@ -1,6 +1,9 @@
 # InsaneAquarium
 This is a clone of the game from popcap which was about feeding fish and keeping them alive against bosses
 
+![image](https://github.com/user-attachments/assets/39ff5b35-6693-400e-8aa9-95bc3a1ed351)
+
+
 # Twitch integrations
 we will be integrating twitch for this
 
