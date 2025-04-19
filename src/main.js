@@ -83,7 +83,7 @@ bus.on('purchase', itemId => {
       foodLevel += 1;
       // drop a handful of food at random
       for (let i = 0; i < 5; i++) {
-        new Food(Math.random() * 800, 0);
+        new Food(Math.random() * 800, foodLevel);
       }
       break;
     case 'boost':
