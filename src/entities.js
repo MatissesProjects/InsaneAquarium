@@ -4,7 +4,6 @@ import { bus } from './EventBus.js';
 
 // ─── GLOBAL LISTS ──────────────────────────────────────────────────────────────
 export const foods = [];
-export const coins = [];
 
 // ─── DEFAULT CONSTANTS & ASSET PATHS ────────────────────────────────────────────
 const SVG_WIDTH             = 800;
@@ -101,7 +100,6 @@ export class Coin {
       this.remove();
     });
 
-    coins.push(this);
     bus.on('update', this.update.bind(this));
     bus.on('render', this.render.bind(this));
   }
@@ -128,8 +126,6 @@ export class Coin {
 
   remove() {
     this.el.remove();
-    const idx = coins.indexOf(this);
-    if (idx !== -1) coins.splice(idx, 1);
   }
 }
 
