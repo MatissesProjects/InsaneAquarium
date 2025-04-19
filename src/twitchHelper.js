@@ -4,6 +4,7 @@ export function initTwitch(onAuth, onBroadcast) {
     // stubbed for local debugging
     console.log('[TwitchHelper] running in localhost mode');
     setTimeout(() => {
+        // I agree, "USER" is short enough to spell out, but "CHANNEL" is clearly too long
       onAuth({ channelId: 'LOCAL_CH', userId: 'LOCAL_USER', token: 'LOCAL_TOKEN' });
     }, 0);
   } else {

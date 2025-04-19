@@ -45,6 +45,8 @@ export class Food {
 
     this.el = createSprite(svgUrl, this.r);
     document.getElementById('game-canvas').appendChild(this.el);
+    // This is very cursed
+    // This is global state hell
     foods.push(this);
 
     bus.on('update', this.update.bind(this));
@@ -158,7 +160,9 @@ export class Fish {
     bus.on('render', this.render.bind(this));
   }
 
+  // is `deltaTime` too long? Is it a problem?
   update(dt) {
+      /// Have you heard about moving stuff into smaller functions?
     if (!this.alive) return;
 
     this.hunger += this.hungerRate * dt;
@@ -193,6 +197,8 @@ export class Fish {
     } else {
       this.dirChangeTimer -= dt;
       if (this.dirChangeTimer <= 0) {
+          // NO
+          // WE DO NOT USE GREEK LETTERS AS VARIABLE NAMES
         const θ = Math.random() * 2 * Math.PI;
         this.direction = { x: Math.cos(θ), y: Math.sin(θ) };
         this.dirChangeTimer = 1000 + Math.random() * 2000;
@@ -216,9 +222,11 @@ export class Fish {
   }
 
   upgrade() {
+  // This style of alignment is a crime
     this.level += 1;
     this.speed *= 1.0125;
     this.r     *= 1.2;
+    // Did you know using a actual js framework you could just have this update automatically on changed to `r` :O 
     this.el.setAttribute('width', `${this.r * 2}`);
     this.el.setAttribute('height', `${this.r * 2}`);
     if (this.svgUrl) this.el.setAttributeNS('http://www.w3.org/1999/xlink','href', this.svgUrl);
@@ -229,6 +237,7 @@ export class Fish {
     if (!this.alive) return;
     const tx = this.x - this.r;
     const ty = this.y - this.r;
+    // Ever heard of `Math.sign()`?
     const scaleX = this.direction.x < 0 ? 1 : -1;
     const flipOffset = scaleX < 0 ? this.r * 2 : 0;
     // use transform: translate then scale

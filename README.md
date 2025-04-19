@@ -10,4 +10,5 @@ we will be integrating twitch for this
 # Install
 download the repo
 then run your favorite npm or python server on any port
+> As evident from the code we are too lazy to just tell you about `python -m http.server`
 use that `localhost:PORT` to connect

@@ -5,6 +5,7 @@ import { startGameLoop }  from './gameLoop.js';
 import { Food, Fish }     from './entities.js';
 import { initShop }  from './shop.js';
 // TODO move this to its own module most likely
+// GLOBAL STATE :O
 let wallet = 100;
 let foodLevel = 1;  // you’ll want to track this in your game state
 
@@ -16,6 +17,7 @@ svg.addEventListener('click', e => {
   const pt = svg.createSVGPoint();
   pt.x = e.clientX; pt.y = e.clientY;
   const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+  // Sir why is your constructor doing side effects?
   new Food(loc.x, loc.y, foodLevel);
 });
 
@@ -41,6 +43,7 @@ initTwitch(
   }
 );
 
+/// Have you heard about code formatters?
 document.getElementById('game-canvas')
         .addEventListener('click', e => {
   const pt = e.target.ownerSVGElement
@@ -68,6 +71,9 @@ bus.on('spawnCoin', () => {
 
 // Handle purchase events:
 bus.on('purchase', itemId => {
+  // you have `walled -= ...`, `bus.emit('coinsChanged', wallet)` at the start of each case
+  // Just... make a function please.
+  // Or maybe IDK make a map to store this instead of a hardcoded switch?
   switch(itemId) {
     case 'fish':
       // deduct cost, spawn new fish
@@ -89,6 +95,7 @@ bus.on('purchase', itemId => {
     case 'boost':
       wallet -= 50;
       bus.emit('coinsChanged', wallet);
+      // Instead of putting magic numbers in comments maybe make `speedBust` take 20% as a argument?
       // e.g. speed up all fish by 20%
       bus.emit('globalEvent', { type:'speedBoost' });
       break;

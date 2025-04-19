@@ -1,3 +1,6 @@
+// Oh WOOOOOOOW we didnt use global state!
+// You actually used a singleton pattern instead!
+// *clap* *clap* *clap*
 export class EventBus {
   constructor() { this.handlers = {}; }
   on(evt, cb) { (this.handlers[evt] ||= []).push(cb); }
