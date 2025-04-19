@@ -94,3 +94,8 @@ bus.on('purchase', itemId => {
       break;
   }
 });
+
+bus.on('coinCollected', amount => {
+  wallet += amount;
+  bus.emit('coinsChanged', wallet);
+});

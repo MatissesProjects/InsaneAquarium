@@ -11,7 +11,10 @@ let foodLevel = 1;  // you’ll want to track this in your game state
 
 function renderShop() {
   const shop = document.getElementById('shop-container');
-  shop.innerHTML = '';  // clear
+  shop.innerHTML = `
+    <div id="shop-balance" style="flex:0 0 100%; text-align:right; padding:0 10px;">
+      💰 ${coins}¢
+    </div>`;
 
   for (const item of ITEMS) {
     const btn = document.createElement('div');

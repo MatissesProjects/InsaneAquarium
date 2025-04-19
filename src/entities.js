@@ -5,13 +5,14 @@ export const foods = [];
 
 // ─── DEFAULT CONSTANTS ─────────────────────────────────────────────────────────
 const SVG_WIDTH         = 800;
-const SVG_HEIGHT        = 375;
+const SVG_HEIGHT        = 325;
 const DEFAULT_GRAVITY           = 0.00005;   // px per ms²
 const DEFAULT_BASE_LIFETIME     = 3000;      // ms per level on ground before removal
 const DEFAULT_HUNGER_RATE       = 0.000125;  // hunger units per ms
 const DEFAULT_HUNGRY_THRESHOLD  = 1;         // hunger at which fish begins to seek food
 const DEFAULT_DEATH_THRESHOLD   = 5;         // hunger at which fish dies and is removed
-
+const DEFAULT_DROP_INTERVAL = 10000; // ms between drops at level 1
+const COIN_LIFESPAN = 5000; // ms before coins disappear
 // ─── FOOD ENTITY ──────────────────────────────────────────────────────────────
 export class Food {
   /**
@@ -102,6 +103,8 @@ export class Fish {
     this.hungerRate       = config.hungerRate ?? DEFAULT_HUNGER_RATE;
     this.hungryThreshold  = config.hungryThreshold ?? DEFAULT_HUNGRY_THRESHOLD;
     this.deathThreshold   = config.deathThreshold ?? DEFAULT_DEATH_THRESHOLD;
+    this.dropInterval     = config.dropInterval ?? DEFAULT_DROP_INTERVAL;
+    this.dropTimer        = 0;
 
     // movement
     this.dirChangeTimer   = 0;
@@ -143,6 +146,14 @@ export class Fish {
     // go from yellow (39) to green (81)
     const hue  = 39 + (120 - 39) * t;
     this.el.setAttribute('fill', `hsl(${hue}, 80%, 50%)`);
+
+    // coin‐drop logic
+    this.dropTimer += dt;
+    if (this.dropTimer >= this.dropInterval) {
+        this.dropTimer -= this.dropInterval;
+        bus.emit('coinDropped', { x: this.x, y: this.y, amount: 1 });
+        new Coin(this.x, this.y, 1, DEFAULT_GRAVITY);
+    }
 
     // decide behavior: wander or seek
     const isHungry = this.hunger >= this.hungryThreshold;
@@ -191,10 +202,9 @@ export class Fish {
   onEat() {
     // reset hunger, increase health
     this.health += this.level;
-    this.hunger = this.health;
+    this.hunger = 0;
     if (this.health >= this.nextUpgradeThreshold) {
       this.upgrade();
-      this.nextUpgradeThreshold *= 1.25;
     }
   }
 
@@ -203,6 +213,9 @@ export class Fish {
     this.speed *= 1.0125;
     this.r     *= 1.2;
     this.el.setAttribute('r', `${this.r}`);
+    this.nextUpgradeThreshold *= 2.;
+    this.dropInterval *= 0.8;  // 20% faster drops each level
+    this.nextUpgradeThreshold *= 1.25;
   }
 
   render() {
@@ -211,3 +224,66 @@ export class Fish {
     this.el.setAttribute('cy', `${this.y}`);
   }
 }
+
+// ─── COIN ENTITY ──────────────────────────────────────────────────────────────
+export class Coin {
+    constructor(x, y, amount = 1, gravity = DEFAULT_GRAVITY) {
+      this.x           = x;
+      this.y           = y;
+      this.r           = 4;
+      this.amount      = amount;
+      this.vy          = 0;
+      this.gravity     = gravity;
+  
+      this.landed      = false;
+      this.groundTimer = 0;
+      this.lifespan    = COIN_LIFESPAN;
+  
+      this.el = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      this.el.setAttribute('class', 'coin');
+      this.el.setAttribute('r', `${this.r}`);
+      this.el.setAttribute('fill', 'gold');
+      this.el.setAttribute('stroke', 'orange');
+      this.el.setAttribute('stroke-width', '1');
+      document.getElementById('game-canvas').appendChild(this.el);
+      
+      this.el.addEventListener('click', () => {
+        bus.emit('coinCollected', this.amount);
+        this.remove();
+      });
+      
+      bus.on('update', this.update.bind(this));
+      bus.on('render', this.render.bind(this));
+    }
+  
+    update(dt) {
+      // gravity drop
+        this.vy += this.gravity * dt;
+        this.y  += this.vy      * dt;
+
+        // ground collision
+        if (this.y + this.r >= SVG_HEIGHT) {
+        if (!this.landed) {
+            this.landed      = true;
+            this.groundTimer = 0;
+        }
+        this.y  = SVG_HEIGHT - this.r;
+        this.vy = 0;
+        }
+
+        // removal after landing lifespan
+        if (this.landed) {
+        this.groundTimer += dt;
+        if (this.groundTimer >= this.lifespan) this.remove();
+        }
+    }
+  
+    render() {
+      this.el.setAttribute('cx', `${this.x}`);
+      this.el.setAttribute('cy', `${this.y}`);
+    }
+  
+    remove() {
+      this.el.remove();
+    }
+  }
