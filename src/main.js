@@ -1,101 +1,76 @@
-import { bus }            from './EventBus.js';
-import { initTwitch }     from './twitchHelper.js';
-import { connectLobby }   from './network.js';
-import { startGameLoop }  from './gameLoop.js';
-import { Food, Fish }     from './entities.js';
-import { initShop }  from './shop.js';
-// TODO move this to its own module most likely
-let wallet = 100;
-let foodLevel = 1;  // you’ll want to track this in your game state
 
-initShop(wallet);
+// Core imports
+import { bus } from './core/EventBus.js';
+import { FOOD_SPAWN_INTERVAL, SVG_WIDTH } from './core/constants.js';
 
-const svg = document.getElementById('game-canvas');
-svg.addEventListener('click', e => {
-  // convert screen → SVG coords
-  const pt = svg.createSVGPoint();
-  pt.x = e.clientX; pt.y = e.clientY;
-  const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
-  new Food(loc.x, loc.y, foodLevel);
-});
+// Systems - Import initializers
+import { initRenderingSystem } from './systems/RenderingSystem.js';
+import { initInputSystem } from './systems/InputSystem.js';
+// EntityManager is used directly via its imported object
 
-// 1. Twitch auth & broadcast listener
-initTwitch(
-  ({ channelId, userId, token }) => {
-    console.log('[Main] Authorized:', channelId, userId);
-    // const socket = connectLobby(channelId, userId, token);
-    // inside your onAuthorized callback, before starting the loop:
+// Entity Types
+import { Fish } from './entities/Fish.js';
+import { Food } from './entities/Food.js';
 
-    // forward lobby events to game
-    bus.on('lobbyMessage', msg => {
-      if (msg.event === 'boss') bus.emit('spawnBoss');
-      // ... handle other lobby events
-    });
+// --- Game Initialization ---
 
-    // start our game once we have auth + socket
-    startGameLoop();
-  },
-  (_target, _type, message) => {
-    const { event } = JSON.parse(message);
-    if (event === 'boss') bus.emit('spawnBoss');
-  }
-);
+// 1. Initialize Systems
+// RenderingSystem listens for entityAdded/Removed and render events
+initRenderingSystem();
+// InputSystem listens for clicks and fires entityClicked events
+initInputSystem();
 
-document.getElementById('game-canvas')
-        .addEventListener('click', e => {
-  const pt = e.target.ownerSVGElement
-               .createSVGPoint();
-  pt.x = e.clientX; pt.y = e.clientY;
-  console.log('SVG click at', pt.matrixTransform(
-    e.target.getScreenCTM().inverse()
-  ));
-});
+console.log('Game Systems Initialized.');
 
-// 2. Example update / render handlers
-bus.on('update', dt => {
-  // TODO: move fish, coins, handle collisions
-});
+// 2. Initial Game State Setup
+// Create starting fish
+new Fish({ x: SVG_WIDTH / 2, y: 150 });
+new Fish({ x: SVG_WIDTH / 3, y: 120 });
 
-bus.on('render', () => {
-  // TODO: paint/upsert SVG elements in #game-canvas
-});
+// Example: Automatically spawn food periodically
+setInterval(() => {
+  // Create new food instance; it will register itself via EntityManager
+  new Food({ x: Math.random() * SVG_WIDTH, y: 0 });
+}, FOOD_SPAWN_INTERVAL);
 
-// Whenever your fish eats and produces a coin:
-bus.on('spawnCoin', () => {
-  wallet += 1;
-  bus.emit('coinsChanged', wallet);
-});
+// --- Main Game Loop ---
+let lastTimestamp = performance.now();
 
-// Handle purchase events:
-bus.on('purchase', itemId => {
-  switch(itemId) {
-    case 'fish':
-      // deduct cost, spawn new fish
-      wallet -= 10;
-      bus.emit('coinsChanged', wallet);
-      new Fish({ x: Math.random() * 250, y: Math.random() * 250, speed: 0.075 + Math.random() * 0.1, hungerRate: Math.random() * 0.0002+ .0002, hungryThreshold: Math.random() + 1, deathThreshold: Math.random() * 6 + 2 });
-      break;
-    case 'food upgrade':
-      // TODO find current food level, and get its cost for next
-      wallet -= 1;
-      bus.emit('coinsChanged', wallet);
-      bus.emit('foodUpgraded', '');
-      foodLevel += 1;
-      // drop a handful of food at random
-      for (let i = 0; i < 5; i++) {
-        new Food(Math.random() * 800, foodLevel);
-      }
-      break;
-    case 'boost':
-      wallet -= 50;
-      bus.emit('coinsChanged', wallet);
-      // e.g. speed up all fish by 20%
-      bus.emit('globalEvent', { type:'speedBoost' });
-      break;
-  }
-});
+function gameLoop(currentTimestamp) {
+  const dt = currentTimestamp - lastTimestamp;
+  lastTimestamp = currentTimestamp;
 
-bus.on('coinCollected', amount => {
-  wallet += amount;
-  bus.emit('coinsChanged', wallet);
+  // Clamp delta time to prevent physics issues if tab inactive
+  const deltaTime = Math.min(dt, 100); // Max delta 100ms
+
+  // Emit 'update' event - Entities listening will update their state
+  bus.emit('update', deltaTime);
+
+  // Emit 'render' event - RenderingSystem listening will redraw entities
+  bus.emit('render');
+
+  // Request next frame
+  requestAnimationFrame(gameLoop);
+}
+
+// Start the game loop
+console.log('Starting game loop...');
+requestAnimationFrame(gameLoop);
+
+// Optional: Listen for coin collection to update score (basic example)
+let score = 0;
+const scoreDisplay = document.createElement('div'); // Simple score display
+scoreDisplay.style.position = 'absolute';
+scoreDisplay.style.top = '10px';
+scoreDisplay.style.left = '10px';
+scoreDisplay.style.color = 'white';
+scoreDisplay.style.fontSize = '20px';
+scoreDisplay.style.fontFamily = 'Arial, sans-serif';
+scoreDisplay.textContent = 'Score: 0';
+document.getElementById('game-container').appendChild(scoreDisplay);
+
+bus.on('coinCollected', (amount) => {
+    score += amount;
+    scoreDisplay.textContent = `Score: ${score}`;
+    // console.log(`Score: ${score}`);
 });

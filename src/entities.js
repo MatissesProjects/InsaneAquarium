@@ -2,11 +2,9 @@
 
 import { bus } from './EventBus.js';
 
-// ─── GLOBAL LISTS ──────────────────────────────────────────────────────────────
 export const foods = [];
 
-// ─── DEFAULT CONSTANTS & ASSET PATHS ────────────────────────────────────────────
-const SVG_WIDTH             = 800;
+const SVG_WIDTH             = 750;
 const SVG_HEIGHT            = 325;
 const DEFAULT_GRAVITY       = 0.00005;   // px per ms²
 const DEFAULT_BASE_LIFETIME = 3000;      // ms per level on ground before removal
@@ -30,7 +28,6 @@ function createSprite(url, size) {
   return img;
 }
 
-// ─── FOOD ENTITY ──────────────────────────────────────────────────────────────
 export class Food {
   constructor(x, y, level = 1, gravity = DEFAULT_GRAVITY, svgUrl = DEFAULT_FOOD_SVG) {
     this.x           = x;
@@ -79,7 +76,6 @@ export class Food {
   }
 }
 
-// ─── COIN ENTITY ──────────────────────────────────────────────────────────────
 export class Coin {
   constructor(x, y, amount = 1, gravity = DEFAULT_GRAVITY, svgUrl = DEFAULT_COIN_SVG) {
     this.x           = x;
@@ -129,7 +125,6 @@ export class Coin {
   }
 }
 
-// ─── FISH ENTITY ──────────────────────────────────────────────────────────────
 export class Fish {
   constructor(config = {}) {
     this.x               = config.x ?? 100;
