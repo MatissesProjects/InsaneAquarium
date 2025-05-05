@@ -1,25 +1,20 @@
-// src/entities.js
-
 import { bus } from './EventBus.js';
 
 export const foods = [];
 
-const SVG_WIDTH             = 750;
-const SVG_HEIGHT            = 325;
-const DEFAULT_GRAVITY       = 0.00005;   // px per ms²
-const DEFAULT_BASE_LIFETIME = 3000;      // ms per level on ground before removal
-const DEFAULT_HUNGER_RATE   = 0.000125;  // hunger units per ms
-const DEFAULT_HUNGRY_THRESH = 1;         // when fish starts seeking food
-const DEFAULT_DEATH_THRESH  = 5;         // hunger at which fish dies
-const DEFAULT_DROP_INTERVAL = 10000;     // ms between coin drops
-const COIN_LIFESPAN         = 2000;      // ms before a landed coin disappears
-
-// Placeholder SVG asset URLs – replace with local files as needed
+const SVG_WIDTH = 750;
+const SVG_HEIGHT = 325;
+const DEFAULT_GRAVITY = 0.00005;
+const DEFAULT_BASE_LIFETIME = 3000;
+const DEFAULT_HUNGER_RATE = 0.000125;
+const DEFAULT_HUNGRY_THRESH = 1;
+const DEFAULT_DEATH_THRESH = 5;
+const DEFAULT_DROP_INTERVAL = 10000;
+const COIN_LIFESPAN = 2000;
 const DEFAULT_FISH_SVG = 'assets/fish.svg';
 const DEFAULT_COIN_SVG = 'assets/coin.svg';
 const DEFAULT_FOOD_SVG = 'assets/food.svg';
 
-// Utility to create an SVG <image> element
 function createSprite(url, size) {
   const img = document.createElementNS('http://www.w3.org/2000/svg','image');
   img.setAttributeNS('http://www.w3.org/1999/xlink','href', url);
@@ -30,15 +25,15 @@ function createSprite(url, size) {
 
 export class Food {
   constructor(x, y, level = 1, gravity = DEFAULT_GRAVITY, svgUrl = DEFAULT_FOOD_SVG) {
-    this.x           = x;
-    this.y           = y;
-    this.r           = 4;
-    this.vy          = 0;
-    this.level       = level;
-    this.gravity     = gravity;
-    this.landed      = false;
+    this.x = x;
+    this.y = y;
+    this.r = 4;
+    this.vy = 0;
+    this.level = level;
+    this.gravity = gravity;
+    this.landed = false;
     this.groundTimer = 0;
-    this.lifespan    = DEFAULT_BASE_LIFETIME * level;
+    this.lifespan = DEFAULT_BASE_LIFETIME * level;
 
     this.el = createSprite(svgUrl, this.r);
     document.getElementById('game-canvas').appendChild(this.el);
@@ -50,7 +45,7 @@ export class Food {
 
   update(dt) {
     this.vy += this.gravity * dt;
-    this.y  += this.vy * dt;
+    this.y += this.vy * dt;
 
     if (this.y + this.r >= SVG_HEIGHT) {
       if (!this.landed) { this.landed = true; this.groundTimer = 0; }
@@ -65,7 +60,6 @@ export class Food {
   }
 
   render() {
-    // position without flipping
     this.el.setAttribute('transform', `translate(${this.x - this.r}, ${this.y - this.r})`);
   }
 
@@ -78,15 +72,15 @@ export class Food {
 
 export class Coin {
   constructor(x, y, amount = 1, gravity = DEFAULT_GRAVITY, svgUrl = DEFAULT_COIN_SVG) {
-    this.x           = x;
-    this.y           = y;
-    this.r           = 16;
-    this.amount      = amount;
-    this.vy          = 0;
-    this.gravity     = gravity;
-    this.landed      = false;
+    this.x = x;
+    this.y = y;
+    this.r = 16;
+    this.amount = amount;
+    this.vy = 0;
+    this.gravity = gravity;
+    this.landed = false;
     this.groundTimer = 0;
-    this.lifespan    = COIN_LIFESPAN;
+    this.lifespan = COIN_LIFESPAN;
 
     this.el = createSprite(svgUrl, this.r);
     this.el.style.cursor = 'pointer';
@@ -127,23 +121,23 @@ export class Coin {
 
 export class Fish {
   constructor(config = {}) {
-    this.x               = config.x ?? 100;
-    this.y               = config.y ?? 200;
-    this.r               = config.radius ?? 20;
-    this.speed           = config.speed ?? 0.08;
-    this.hungerRate      = config.hungerRate ?? DEFAULT_HUNGER_RATE;
+    this.x = config.x ?? 100;
+    this.y = config.y ?? 200;
+    this.r = config.radius ?? 20;
+    this.speed = config.speed ?? 0.08;
+    this.hungerRate = config.hungerRate ?? DEFAULT_HUNGER_RATE;
     this.hungryThreshold = config.hungryThreshold ?? DEFAULT_HUNGRY_THRESH;
-    this.deathThreshold  = config.deathThreshold ?? DEFAULT_DEATH_THRESH;
-    this.dropInterval    = config.dropInterval ?? DEFAULT_DROP_INTERVAL;
-    this.svgUrl          = config.svgUrl ?? DEFAULT_FISH_SVG;
+    this.deathThreshold = config.deathThreshold ?? DEFAULT_DEATH_THRESH;
+    this.dropInterval = config.dropInterval ?? DEFAULT_DROP_INTERVAL;
+    this.svgUrl = config.svgUrl ?? DEFAULT_FISH_SVG;
 
-    this.dirChangeTimer  = 0;
-    this.direction       = { x: 1, y: 0 };
-    this.health               = 1;
-    this.level                = 1;
+    this.dirChangeTimer = 0;
+    this.direction = { x: 1, y: 0 };
+    this.health = 1;
+    this.level = 1;
     this.nextUpgradeThreshold = 2;
-    this.hunger    = 0;
-    this.alive     = true;
+    this.hunger = 0;
+    this.alive = true;
     this.dropTimer = 0;
 
     this.el = createSprite(this.svgUrl, this.r);
@@ -163,7 +157,7 @@ export class Fish {
       return;
     }
 
-    const t  = Math.min(this.hunger / this.deathThreshold, 1);
+    const t = Math.min(this.hunger / this.deathThreshold, 1);
     const hue = 39 + (120 - 39) * t;
     this.el.style.filter = `hue-rotate(${hue - 39}deg)`;
 
@@ -188,8 +182,8 @@ export class Fish {
     } else {
       this.dirChangeTimer -= dt;
       if (this.dirChangeTimer <= 0) {
-        const θ = Math.random() * 2 * Math.PI;
-        this.direction = { x: Math.cos(θ), y: Math.sin(θ) };
+        const theta = Math.random() * 2 * Math.PI;
+        this.direction = { x: Math.cos(theta), y: Math.sin(theta) };
         this.dirChangeTimer = 1000 + Math.random() * 2000;
       }
     }
@@ -213,7 +207,7 @@ export class Fish {
   upgrade() {
     this.level += 1;
     this.speed *= 1.0125;
-    this.r     *= 1.2;
+    this.r *= 1.2;
     this.el.setAttribute('width', `${this.r * 2}`);
     this.el.setAttribute('height', `${this.r * 2}`);
     if (this.svgUrl) this.el.setAttributeNS('http://www.w3.org/1999/xlink','href', this.svgUrl);
@@ -226,7 +220,6 @@ export class Fish {
     const ty = this.y - this.r;
     const scaleX = this.direction.x < 0 ? 1 : -1;
     const flipOffset = scaleX < 0 ? this.r * 2 : 0;
-    // use transform: translate then scale
     this.el.setAttribute('transform', `translate(${tx + flipOffset}, ${ty}) scale(${scaleX}, 1)`);
   }
 }

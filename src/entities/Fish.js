@@ -61,7 +61,6 @@ export class Fish extends Entity {
         const availableFood = Array.from(entityManager.getFoods());
 
         if (this.isHungry && availableFood.length > 0) {
-            // Find closest food
             let closestFood = null;
             let bestDistSq = Infinity;
             for (const food of availableFood) {
@@ -75,7 +74,6 @@ export class Fish extends Entity {
 
             if (closestFood) {
                 const bestDist = Math.sqrt(bestDistSq);
-                // Set direction vector towards closest food
                 this.direction = {
                     x: (closestFood.x - this.x) / bestDist,
                     y: (closestFood.y - this.y) / bestDist
