@@ -5,7 +5,8 @@ import {
 } from './core/constants.js';
 import { initRenderingSystem } from './systems/RenderingSystem.js';
 import { initInputSystem } from './systems/InputSystem.js';
-import { Fish, Food } from './entities/Food.js';
+import { Food } from './entities/Food.js';
+import { Fish } from './entities/Fish.js';
 
 let score = 0;
 let foodLevel = 1;
