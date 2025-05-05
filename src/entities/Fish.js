@@ -2,167 +2,166 @@ import { bus } from '../core/EventBus.js';
 import { Entity } from './Entity.js';
 import { entityManager } from '../systems/EntityManager.js';
 import {
-    ASSETS, FISH_RADIUS, HUNGER_RATE, HUNGRY_THRESHOLD, DEATH_THRESHOLD,
-    FISH_SPEED, FISH_TURN_RATE, FISH_VERTICAL_SPEED, FISH_EAT_RADIUS_SQ,
-    DROP_INTERVAL, SVG_WIDTH, SVG_HEIGHT
+    ASSETS, SVG_WIDTH, SVG_HEIGHT,
+    FISH_RADIUS, FISH_SPEED, HUNGER_RATE, HUNGRY_THRESHOLD, DEATH_THRESHOLD,
+    DROP_INTERVAL, COIN_DROP_COOLDOWN,
+    FISH_INITIAL_HEALTH_THRESHOLD, FISH_HEALTH_THRESHOLD_MULTIPLIER,
+    FISH_LEVEL_SPEED_MULTIPLIER, FISH_LEVEL_RADIUS_MULTIPLIER,
+    FISH_LEVEL_DROP_INTERVAL_MULTIPLIER
 } from '../core/constants.js';
 import { distanceSquared } from '../core/utils.js';
-import { Coin } from './Coin.js'; // To drop coins
+import { Coin } from './Coin.js';
 
 export class Fish extends Entity {
-    constructor({ x, y }) {
-        super(); // Sets this.alive = true
-        this.x = x;
-        this.y = y;
-        this.r = FISH_RADIUS;
-        this.asset = ASSETS.FISH; // For renderer
-
-        this.hunger = 0; // Starts not hungry
+    constructor(config = {}) {
+        super();
+        this.x = config.x ?? SVG_WIDTH / 2;
+        this.y = config.y ?? SVG_HEIGHT / 2;
+        this.baseRadius = config.radius ?? FISH_RADIUS;
+        this.baseSpeed = config.speed ?? FISH_SPEED;
+        this.baseDropInterval = config.dropInterval ?? DROP_INTERVAL;
+        this.hungerRate = config.hungerRate ?? HUNGER_RATE;
+        this.hungryThreshold = config.hungryThreshold ?? HUNGRY_THRESHOLD;
+        this.deathThreshold = config.deathThreshold ?? DEATH_THRESHOLD;
+        this.asset = config.assetUrl ?? ASSETS.FISH;
+        this.r = this.baseRadius;
+        this.speed = this.baseSpeed;
+        this.dropInterval = this.baseDropInterval;
+        this.hunger = 0;
         this.isHungry = false;
-
-        // Movement
-        this.vx = (Math.random() - 0.5) * FISH_SPEED; // Initial random direction
-        this.vy = (Math.random() - 0.5) * FISH_VERTICAL_SPEED * 0.5; // Slower vertical start
-        this.targetX = x;
-        this.targetY = y + (Math.random() - 0.5) * 100; // Initial vertical target
-        this.setNewTarget(); // Set a random target position
-
-        this.coinDropTimer = DROP_INTERVAL * Math.random(); // Stagger initial drops
-
+        this.alive = true;
+        this.facingRight = true;
+        this.coinDropTimer = this.dropInterval * Math.random();
+        this.coinCooldownTimer = 0;
+        this.level = 1;
+        this.health = 0;
+        this.nextUpgradeThreshold = FISH_INITIAL_HEALTH_THRESHOLD;
+        this.direction = { x: (Math.random() > 0.5 ? 1 : -1), y: 0 };
+        this.dirChangeTimer = 1000 + Math.random() * 2000;
         entityManager.addEntity(this);
-        bus.on('update', this.updateCallback); // Use arrow func or .bind(this)
-    }
-
-    setNewTarget() {
-        this.targetX = Math.random() * (SVG_WIDTH - this.r * 2) + this.r;
-        // Keep target within vertical bounds, slightly away from top/bottom
-        this.targetY = Math.random() * (SVG_HEIGHT * 0.8) + (SVG_HEIGHT * 0.1);
+        bus.on('update', this.updateCallback);
     }
 
     updateCallback = (dt) => {
         if (!this.alive) return;
-        this.update(dt);
+        const safeDt = Math.min(dt, 100);
+        this.update(safeDt);
     };
 
     update(dt) {
-        // --- Hunger ---
-        this.hunger += HUNGER_RATE * dt;
-        this.isHungry = this.hunger > HUNGRY_THRESHOLD;
+        this.hunger += this.hungerRate * dt;
+        this.isHungry = this.hunger >= this.hungryThreshold;
 
-        if (this.hunger > DEATH_THRESHOLD) {
-            console.log('Fish starved!');
+        if (this.hunger >= this.deathThreshold) {
+            console.log(`Fish @ (${this.x.toFixed(0)},${this.y.toFixed(0)}) starved!`);
             this.remove();
-            return; // Stop update if dead
+            return;
         }
 
-        // --- Movement ---
-        let targetFood = null;
-        if (this.isHungry) {
+        const availableFood = Array.from(entityManager.getFoods());
+
+        if (this.isHungry && availableFood.length > 0) {
             // Find closest food
-            let minFoodDistSq = Infinity;
-            for (const food of entityManager.getFoods()) {
+            let closestFood = null;
+            let bestDistSq = Infinity;
+            for (const food of availableFood) {
+                if (!food.alive) continue;
                 const distSq = distanceSquared(this.x, this.y, food.x, food.y);
-                if (distSq < minFoodDistSq) {
-                    minFoodDistSq = distSq;
-                    targetFood = food;
+                if (distSq < bestDistSq) {
+                    bestDistSq = distSq;
+                    closestFood = food;
                 }
             }
-        }
 
-        let currentTargetX = this.targetX;
-        let currentTargetY = this.targetY;
+            if (closestFood) {
+                const bestDist = Math.sqrt(bestDistSq);
+                // Set direction vector towards closest food
+                this.direction = {
+                    x: (closestFood.x - this.x) / bestDist,
+                    y: (closestFood.y - this.y) / bestDist
+                };
 
-        if (targetFood) {
-            // Override wander target if hungry and food exists
-            currentTargetX = targetFood.x;
-            currentTargetY = targetFood.y;
-
-            // Check if close enough to eat
-             const eatRadiusSq = FISH_EAT_RADIUS_SQ + (targetFood.r * targetFood.r); // Adjust based on food size
-            if (distanceSquared(this.x, this.y, targetFood.x, targetFood.y) < eatRadiusSq) {
-                this.eat(targetFood);
-                targetFood = null; // Stop targeting this food
+                if (bestDist < this.r + closestFood.r) {
+                    this.eat(closestFood);
+                }
+            } else {
+                 this.setWanderDirection(dt);
             }
-        }
 
-        // --- Steering ---
-        const dx = currentTargetX - this.x;
-        const dy = currentTargetY - this.y;
-        const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
-
-        // If close to target (or no food target), pick a new wander target
-        if (!targetFood && distanceToTarget < this.r * 2) {
-            this.setNewTarget();
         } else {
-             // Steer towards target
-            const targetAngle = Math.atan2(dy, dx);
-            const currentAngle = Math.atan2(this.vy, this.vx); // Current movement angle
-
-            // Simple interpolation towards target angle
-            let angleDiff = targetAngle - currentAngle;
-            // Normalize angle difference to (-PI, PI)
-            while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
-            while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
-
-            const turnAmount = FISH_TURN_RATE * dt;
-            const newAngle = currentAngle + Math.max(-turnAmount, Math.min(turnAmount, angleDiff));
-
-            // Adjust speed based on hunger? Maybe slow down when full?
-            const speed = FISH_SPEED;
-            this.vx = Math.cos(newAngle) * speed;
-            // Give slightly more priority to vertical movement towards food?
-            const verticalSpeed = targetFood ? FISH_VERTICAL_SPEED * 1.5 : FISH_VERTICAL_SPEED;
-            this.vy = Math.sin(newAngle) * (targetFood ? Math.sign(dy) * verticalSpeed : verticalSpeed); // Simplified vertical aim
+            this.setWanderDirection(dt);
         }
 
+        this.x += this.direction.x * this.speed * dt;
+        this.y += this.direction.y * this.speed * dt;
 
-        // Apply velocity
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-
-        // Clamp position within bounds (simple edge collision)
-        this.x = Math.max(this.r, Math.min(SVG_WIDTH - this.r, this.x));
+        if (this.x < -this.r) this.x = SVG_WIDTH + this.r;
+        if (this.x > SVG_WIDTH + this.r) this.x = -this.r;
         this.y = Math.max(this.r, Math.min(SVG_HEIGHT - this.r, this.y));
 
-         // Simple boundary collision response: reverse velocity component
-        if (this.x <= this.r || this.x >= SVG_WIDTH - this.r) {
-            this.vx *= -0.8; // Reverse and dampen horizontal velocity
-             this.setNewTarget(); // Pick new target to prevent getting stuck
-        }
-        if (this.y <= this.r || this.y >= SVG_HEIGHT - this.r) {
-            this.vy *= -0.8; // Reverse and dampen vertical velocity
-            this.setNewTarget();
+        if (this.direction.x > 0.01) {
+            this.facingRight = true;
+        } else if (this.direction.x < -0.01) {
+            this.facingRight = false;
         }
 
-        // --- Coin Dropping ---
-        if (!this.isHungry) { // Only drop coins when not hungry
-            this.coinDropTimer -= dt;
-            if (this.coinDropTimer <= 0) {
-                this.dropCoin();
-                this.coinDropTimer = DROP_INTERVAL; // Reset timer
-            }
+        if (this.coinCooldownTimer > 0) {
+            this.coinCooldownTimer -= dt;
         }
+
+        this.coinDropTimer -= dt;
+        if (this.coinDropTimer <= 0 && this.coinCooldownTimer <= 0) {
+            this.dropCoin();
+            this.coinDropTimer = this.dropInterval;
+            this.coinCooldownTimer = COIN_DROP_COOLDOWN;
+        }
+    }
+
+    setWanderDirection(dt) {
+         this.dirChangeTimer -= dt;
+         if (this.dirChangeTimer <= 0) {
+             const angle = Math.random() * 2 * Math.PI;
+             this.direction = { x: Math.cos(angle), y: Math.sin(angle) };
+             this.dirChangeTimer = 1000 + Math.random() * 2000;
+         }
     }
 
     eat(food) {
-        // console.log('Fish ate food');
-        this.hunger = 0; // Reset hunger
+        food.remove();
+        this.onEat();
+        bus.emit('foodEaten', { fish: this, food: food });
+    }
+
+    onEat() {
+        this.hunger = 0;
         this.isHungry = false;
-        food.remove(); // Tell the food to remove itself
-        bus.emit('foodEaten', { fish: this, food: food }); // Notify potentially other systems
+        this.health += 1;
+        if (this.health >= this.nextUpgradeThreshold) {
+            this.upgrade();
+        }
+    }
+
+    upgrade() {
+        this.level += 1;
+        this.health = 0;
+        this.speed *= FISH_LEVEL_SPEED_MULTIPLIER;
+        this.r *= FISH_LEVEL_RADIUS_MULTIPLIER;
+        this.dropInterval *= FISH_LEVEL_DROP_INTERVAL_MULTIPLIER;
+        this.nextUpgradeThreshold *= FISH_HEALTH_THRESHOLD_MULTIPLIER;
+        console.log(`*** Fish upgraded to Level ${this.level}! ***`);
+        bus.emit('fishUpgraded', this);
     }
 
     dropCoin() {
-        // console.log('Fish dropping coin');
-        new Coin({ x: this.x, y: this.y + this.r }); // Drop slightly below fish center
-         bus.emit('coinDropped', { fish: this });
+        const coinValue = 1;
+        new Coin({ x: this.x, y: this.y + this.r * 0.5, amount: coinValue });
+        bus.emit('coinDropped', { fish: this, amount: coinValue });
     }
 
     remove() {
-        if (!this.alive) return; // Prevent double removal
-        super.remove(); // Sets this.alive = false
-        bus.off('update', this.updateCallback); // Unsubscribe from updates
-        entityManager.removeEntity(this); // Notify manager
-        // console.log('Fish removed');
+        if (!this.alive) return;
+        super.remove();
+        bus.off('update', this.updateCallback);
+        entityManager.removeEntity(this);
     }
 }

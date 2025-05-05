@@ -1,17 +1,15 @@
 import { bus } from '../core/EventBus.js';
 
-// Using Maps for potentially slightly faster lookups/deletions by object reference
-const entities = new Map(); // All entities: { entityInstance -> type }
+// All entities: { entityInstance -> type }
+const entities = new Map(); 
 const fishes = new Map();
 const foods = new Map();
 const coins = new Map();
-// Add other entity type maps as needed
 
 const typeMap = {
     'Fish': fishes,
     'Food': foods,
     'Coin': coins,
-    // Add other types here
 };
 
 function addEntity(entity) {
@@ -20,12 +18,11 @@ function addEntity(entity) {
 
     const specificMap = typeMap[type];
     if (specificMap) {
-        specificMap.set(entity, entity); // Store instance in type-specific map
+        specificMap.set(entity, entity);
     } else {
         console.warn(`EntityManager: No specific map for type ${type}`);
     }
-    bus.emit('entityAdded', { entity }); // Notify systems (like Renderer)
-    // console.log(`Added ${type}:`, entity);
+    bus.emit('entityAdded', { entity });
 }
 
 function removeEntity(entity) {
@@ -36,18 +33,17 @@ function removeEntity(entity) {
         if (specificMap) {
             specificMap.delete(entity);
         }
-        bus.emit('entityRemoved', { entity }); // Notify systems (like Renderer)
-        // console.log(`Removed ${type}:`, entity);
+        bus.emit('entityRemoved', { entity });
     }
 }
 
 function getEntities() {
-    return entities.keys(); // Iterator of all entity instances
+    return entities.keys();
 }
 
 function getEntitiesByType(type) {
     const specificMap = typeMap[type];
-    return specificMap ? specificMap.keys() : [].values(); // Return iterator or empty iterator
+    return specificMap ? specificMap.keys() : [].values();
 }
 
 
@@ -62,9 +58,9 @@ export const entityManager = {
     getCoins: () => coins.keys(),
 };
 
-// Optional: Listen for requests to remove entities if needed elsewhere
-// bus.on('requestRemoveEntity', (entity) => {
-//     if (entity && entity.remove) {
-//         entity.remove(); // Let the entity handle its own cleanup before final removal
-//     }
-// });
+// Lets use this for boss removal of entities
+bus.on('requestRemoveEntity', (entity) => {
+    if (entity && entity.remove) {
+        entity.remove();
+    }
+});

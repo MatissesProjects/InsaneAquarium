@@ -18,6 +18,7 @@ function getMousePosition(event) {
 
 }
 
+
 function handleCanvasClick(event) {
     const clickPos = getMousePosition(event);
 
@@ -25,31 +26,26 @@ function handleCanvasClick(event) {
     let clickedEntity = null;
     let minDistanceSq = Infinity;
 
-    // Check Coins specifically, as they are the primary clickable target for now
+    // Check Coins specifically
+    // Consider adding other clickable entity checks here later (e.g., collectors)
     for (const coin of entityManager.getCoins()) {
-        const radiusSq = coin.r * coin.r * 4; // Increase clickable area slightly (x2 radius)
+        // Use entity radius for click check, maybe slightly larger
+        const clickRadiusSq = coin.r * coin.r * 2.25; // 1.5x radius squared
         const distSq = distanceSquared(clickPos.x, clickPos.y, coin.x, coin.y);
 
-        if (distSq < radiusSq && distSq < minDistanceSq) {
+        if (distSq < clickRadiusSq && distSq < minDistanceSq) {
             minDistanceSq = distSq;
             clickedEntity = coin;
         }
     }
 
-    // TODO: Add checks for other clickable entities if needed (e.g., buying fish)
-
     if (clickedEntity) {
-        // console.log('InputSystem: Clicked on entity:', clickedEntity);
         bus.emit('entityClicked', clickedEntity);
     } else {
-        // Optional: Emit a background click event if needed
-        // bus.emit('backgroundClicked', clickPos);
-        // console.log('InputSystem: Clicked on background');
-
-        // Example: Spawn food on background click
-        // bus.emit('spawnFoodRequest', clickPos);
+        bus.emit('backgroundClicked', clickPos);
     }
 }
+
 
 export function initInputSystem() {
     svgCanvas.addEventListener('click', handleCanvasClick);

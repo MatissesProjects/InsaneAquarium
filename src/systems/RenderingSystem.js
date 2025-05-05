@@ -1,6 +1,6 @@
 import { bus } from '../core/EventBus.js';
 import { createSpriteElement } from '../core/utils.js';
-import { ASSETS } from '../core/constants.js'; // Need asset paths
+import { ASSETS, DEATH_THRESHOLD } from '../core/constants.js';
 
 const entityMap = new Map(); // Map entity instance to its SVG element
 const svgCanvas = document.getElementById('game-canvas');
@@ -8,35 +8,26 @@ const svgCanvas = document.getElementById('game-canvas');
 function addEntityElement(payload) {
     const { entity } = payload;
     if (!entity || !entity.r || !entity.constructor || !entity.constructor.name) {
-        console.error('RenderingSystem: Invalid entity data for adding element', payload);
+        console.error('[Renderer] Invalid entity data for adding element', payload);
         return;
     }
 
-    // Determine asset URL based on entity type
     let assetUrl;
-    let radius = entity.r; // Use radius from entity
+    let radius = entity.r;
 
     switch (entity.constructor.name) {
-        case 'Fish':
-            assetUrl = ASSETS.FISH;
-            break;
-        case 'Coin':
-            assetUrl = ASSETS.COIN;
-            break;
-        case 'Food':
-            assetUrl = ASSETS.FOOD;
-            break;
+        case 'Fish': assetUrl = ASSETS.FISH; break;
+        case 'Coin': assetUrl = ASSETS.COIN; break;
+        case 'Food': assetUrl = ASSETS.FOOD; break;
         default:
-            console.warn(`RenderingSystem: No asset defined for ${entity.constructor.name}`);
-            return; // Don't add an element if no asset
+            console.warn(`[Renderer] No asset defined for ${entity.constructor.name}`);
+            return;
     }
 
-    // Only create element if not already tracked
     if (!entityMap.has(entity)) {
         const el = createSpriteElement(assetUrl, radius);
         svgCanvas.appendChild(el);
         entityMap.set(entity, el);
-        // console.log(`Renderer added element for ${entity.constructor.name}`);
     }
 }
 
@@ -46,32 +37,40 @@ function removeEntityElement(payload) {
     if (el) {
         el.remove();
         entityMap.delete(entity);
-        // console.log(`Renderer removed element for ${entity.constructor.name}`);
     }
 }
 
 function renderAll() {
-    // console.log(`Rendering ${entityMap.size} elements`);
     for (const [entity, el] of entityMap.entries()) {
-        // Calculate top-left corner for the transform based on center (x, y) and radius (r)
+        if (!entity || typeof entity.x === 'undefined' || typeof entity.y === 'undefined' || typeof entity.r === 'undefined') {
+            continue; // Skip rendering if essential properties missing
+        }
+
+        let transform;
         const topLeftX = entity.x - entity.r;
         const topLeftY = entity.y - entity.r;
-        el.setAttribute('transform', `translate(${topLeftX}, ${topLeftY})`);
 
-        // Optional: Add rotation or scaling if needed
-        // el.setAttribute('transform', `translate(${topLeftX}, ${topLeftY}) rotate(${entity.angle || 0}, ${entity.r}, ${entity.r})`);
+        if (entity.constructor.name === 'Fish') {
+            if (entity.facingRight) {
+                const diameter = entity.r * 2;
+                transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
+            } else {
+                transform = `translate(${topLeftX}, ${topLeftY})`;
+            }
 
-        // Optional: Change visual state based on entity properties (e.g., hunger)
-         if (entity.constructor.name === 'Fish') {
-             if (entity.isHungry) {
-                 // Could apply a class or filter, e.g., el.classList.add('hungry');
-             } else {
-                 // el.classList.remove('hungry');
-             }
-         }
+            const currentHunger = entity.hunger ?? 0;
+            const deathThreshold = entity.deathThreshold ?? DEATH_THRESHOLD ?? 10;
+            const hungerRatio = Math.max(0, Math.min(1, currentHunger / deathThreshold));
+            const hueRotateDegrees = hungerRatio * -85; // 0 (normal) to -85 (yellowish)
+
+            el.style.filter = `hue-rotate(${hueRotateDegrees}deg)`;
+        } else {
+            transform = `translate(${topLeftX}, ${topLeftY})`;
+            el.style.filter = 'none';
+        }
+        el.setAttribute('transform', transform);
     }
 }
-
 
 export function initRenderingSystem() {
     bus.on('entityAdded', addEntityElement);
