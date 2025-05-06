@@ -16,18 +16,11 @@ export const FOOD_RADIUS = 5;
 export const DROP_INTERVAL = 10000;
 export const COIN_LIFESPAN = 8000;
 export const FOOD_SPAWN_INTERVAL= 2000;
-export const FISH_COST = 100;
+export const FISH_COST = 1;
 export const FOOD_UPGRADE_COST = [0, 200, 500];
 export const MAX_FOOD_LEVEL = 2;
 export const FOOD_COST = 0;
 export const COIN_DROP_COOLDOWN = 500;
-
-export const ASSETS = {
-  FISH : './assets/fish.svg',
-  COIN : './assets/coin.svg',
-  FOOD : './assets/food.svg',
-  SNAIL: './assets/snail.svg',
-};
 
 export const FISH_INITIAL_HEALTH_THRESHOLD = 2;
 export const FISH_HEALTH_THRESHOLD_MULTIPLIER = 1.25;
@@ -37,3 +30,17 @@ export const FISH_LEVEL_DROP_INTERVAL_MULTIPLIER = 0.9;
 
 export const SNAIL_RADIUS = 18;
 export const SNAIL_SPEED = 0.015;
+
+export const BREEDER_FISH_RADIUS = 22;
+export const BREEDER_FISH_SPEED = 0.04;
+export const BREEDER_FISH_HUNGER_RATE = 0.00006;
+export const BREEDER_FISH_BIRTH_INTERVAL = 20000;
+export const BREEDER_FISH_MAX_BABIES = 3;
+
+export const ASSETS = {
+  FISH : './assets/fish.svg',
+  COIN : './assets/coin.svg',
+  FOOD : './assets/food.svg',
+  SNAIL: './assets/snail.svg',
+  BREEDER: './assets/breeder.svg',
+};

@@ -7,6 +7,7 @@ import { initRenderingSystem } from './systems/RenderingSystem.js';
 import { initInputSystem } from './systems/InputSystem.js';
 import { Food } from './entities/Food.js';
 import { Fish } from './entities/Fish.js';
+import { BreederFish } from './entities/BreederFish.js';
 import { Snail } from './entities/Snail.js';
 
 let score = 0;
@@ -130,6 +131,10 @@ for (let i = 0; i < 2; i++) {
 }
 
 new Snail({});
+new BreederFish({
+    x: SVG_WIDTH * 0.75, // Example position
+    y: SVG_HEIGHT * 0.5,
+});
 
 function handleBuyFish() {
     if (score >= FISH_COST) {

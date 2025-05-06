@@ -17,6 +17,7 @@ function addEntityElement(payload) {
 
     switch (entity.constructor.name) {
         case 'Fish': assetUrl = ASSETS.FISH; break;
+        case 'BreederFish': assetUrl = ASSETS.BREEDER; break;
         case 'Coin': assetUrl = ASSETS.COIN; break;
         case 'Food': assetUrl = ASSETS.FOOD; break;
         case 'Snail': assetUrl = ASSETS.SNAIL; break;
@@ -67,13 +68,12 @@ function renderAll() {
             el.style.filter = `hue-rotate(${hueRotateDegrees}deg)`;
         } else if (entity.constructor.name === 'Snail') {
             if (entity.facingRight) {
-                transform = `translate(${topLeftX}, ${topLeftY})`;
-           } else {
                 const diameter = entity.r * 2;
                 transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
-           }
-           el.style.filter = 'none';
-    
+            } else {
+                transform = `translate(${topLeftX}, ${topLeftY})`;
+            }
+            el.style.filter = 'none';
         } else {
             transform = `translate(${topLeftX}, ${topLeftY})`;
             el.style.filter = 'none';
