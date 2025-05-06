@@ -52,7 +52,7 @@ function renderAll() {
         const topLeftX = entity.x - entity.r;
         const topLeftY = entity.y - entity.r;
 
-        if (entity.constructor.name === 'Fish') {
+        if (entity.constructor.name === 'Fish' || entity.constructor.name === 'BreederFish') {
             if (entity.facingRight) {
                 const diameter = entity.r * 2;
                 transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
