@@ -21,21 +21,31 @@ function getMousePosition(event) {
 
 function handleCanvasClick(event) {
     const clickPos = getMousePosition(event);
-
-    // Find the closest clickable entity (e.g., Coin) to the click
     let clickedEntity = null;
     let minDistanceSq = Infinity;
 
-    // Check Coins specifically
-    // Consider adding other clickable entity checks here later (e.g., collectors)
     for (const coin of entityManager.getCoins()) {
-        // Use entity radius for click check, maybe slightly larger
-        const clickRadiusSq = coin.r * coin.r * 2.25; // 1.5x radius squared
+        const clickRadiusSq = coin.r * coin.r * 2.25;
         const distSq = distanceSquared(clickPos.x, clickPos.y, coin.x, coin.y);
 
         if (distSq < clickRadiusSq && distSq < minDistanceSq) {
             minDistanceSq = distSq;
             clickedEntity = coin;
+        }
+    }
+
+    if (!clickedEntity) {
+        for (const boss of entityManager.getEntitiesByType('Boss')) {
+            if (!boss.alive) continue;
+            // Use actual radius for boss click check
+            const clickRadiusSqBoss = boss.r * boss.r;
+            const distSqBoss = distanceSquared(clickPos.x, clickPos.y, boss.x, boss.y);
+
+            if (distSqBoss < clickRadiusSqBoss && distSqBoss < minDistanceSq) {
+                // minDistanceSq = distSqBoss; // Not strictly needed if we prioritize boss over background
+                clickedEntity = boss;
+                break; // Found the boss, no need to check others if only one
+            }
         }
     }
 

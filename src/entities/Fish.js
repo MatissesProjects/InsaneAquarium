@@ -35,6 +35,8 @@ export class Fish extends Entity {
         this.coinCooldownTimer = 0;
         this.level = 1;
         this.health = 0;
+        this.maxHp = config.maxHp ?? 5; // Example max HP for a fish
+        this.hp = this.maxHp;
         this.nextUpgradeThreshold = FISH_INITIAL_HEALTH_THRESHOLD;
         this.direction = { x: (Math.random() > 0.5 ? 1 : -1), y: 0 };
         this.dirChangeTimer = 1000 + Math.random() * 2000;
@@ -154,6 +156,18 @@ export class Fish extends Entity {
         const coinValue = 1;
         new Coin({ x: this.x, y: this.y + this.r * 0.5, amount: coinValue });
         bus.emit('coinDropped', { fish: this, amount: coinValue });
+    }
+
+    takeDamage(amount) {
+        if (!this.alive) return;
+    
+        this.hp -= amount;
+        bus.emit('fishDamaged', { fish: this, hpLeft: this.hp, damageTaken: amount });
+    
+        if (this.hp <= 0) {
+            this.hp = 0;
+            this.remove(); // Existing remove method handles cleanup
+        }
     }
 
     remove() {

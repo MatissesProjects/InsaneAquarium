@@ -10,9 +10,11 @@ import { Fish } from './entities/Fish.js';
 import { BreederFish } from './entities/BreederFish.js';
 import { FeederFish } from './entities/FeederFish.js';
 import { Snail } from './entities/Snail.js';
+import { Boss } from './entities/Boss.js';
 
 let score = 0;
 let foodLevel = 1;
+let isBossActive = false;
 const scoreDisplay = document.createElement('div');
 const shopContainer = document.getElementById('shop-container');
 const buyFishButton = document.createElement('button');
@@ -156,6 +158,31 @@ function handleBuyFish() {
         console.log('Not enough money for fish!');
     }
 }
+
+function spawnBoss() {
+    if (isBossActive) {
+        console.log("Boss already active, not spawning another.");
+        return;
+    }
+    console.log("Spawning Boss!");
+    isBossActive = true;
+    const newBoss = new Boss({});
+    bus.on('bossDefeated', ({ boss }) => {
+        if (boss === newBoss) { // Check if it's the one we spawned
+            isBossActive = false;
+            console.log("Boss defeated, can spawn another later.");
+            // Potentially remove this specific listener if only one boss instance expected
+            // bus.off('bossDefeated', specificBossDefeatedHandler);
+        }
+    });
+    bus.emit('bossSpawned', { boss: newBoss });
+}
+
+setTimeout(() => {
+    bus.emit('spawnBossRequest');
+}, 1000);
+
+bus.on('spawnBossRequest', spawnBoss);
 
 let lastTimestamp = performance.now();
 

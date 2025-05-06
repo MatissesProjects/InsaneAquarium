@@ -22,6 +22,7 @@ function addEntityElement(payload) {
         case 'Coin': assetUrl = ASSETS.COIN; break;
         case 'Food': assetUrl = ASSETS.FOOD; break;
         case 'Snail': assetUrl = ASSETS.SNAIL; break;
+        case 'Boss': assetUrl = ASSETS.BOSS_BARBARIAN; break;
         default:
             console.warn(`[Renderer] No asset defined for ${entity.constructor.name}`);
             return;
@@ -74,6 +75,14 @@ function renderAll() {
                 transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
             } else {
                 transform = `translate(${topLeftX}, ${topLeftY})`;
+            }
+            el.style.filter = 'none';
+        }  else if (entity.constructor.name === 'Boss') {
+            if (entity.facingRight) {
+                 transform = `translate(${topLeftX}, ${topLeftY})`;
+            } else {
+                 const diameter = entity.r * 2;
+                 transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
             }
             el.style.filter = 'none';
         } else {

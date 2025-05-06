@@ -43,6 +43,12 @@ export const FEEDER_FISH_HUNGER_RATE = 0.000055;
 export const FEEDER_FISH_FOOD_DROP_INTERVAL = 10000;
 export const FEEDER_FISH_FOOD_DROP_LEVEL = 1;
 
+export const BOSS_RADIUS = 40;
+export const BOSS_SPEED = 0.03;
+export const BOSS_HP = 500;
+export const BOSS_ATTACK_POWER = 1;
+export const BOSS_ATTACK_COOLDOWN = 1500;
+
 export const ASSETS = {
   FISH : './assets/fish.svg',
   COIN : './assets/coin.svg',
@@ -50,4 +56,5 @@ export const ASSETS = {
   SNAIL: './assets/snail.svg',
   BREEDER: './assets/breeder.svg',
   FEEDER: './assets/feeder.svg',
+  BOSS_BARBARIAN: './assets/boss_barbarian.svg'
 };

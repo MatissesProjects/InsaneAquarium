@@ -10,6 +10,10 @@ const typeMap = {
     'Fish': fishes,
     'Food': foods,
     'Coin': coins,
+    'Snail': new Map(),
+    'Boss': new Map(),
+    'BreederFish': new Map(),
+    'FeederFish': new Map(),
 };
 
 function addEntity(entity) {
