@@ -14,4 +14,5 @@ use that `localhost:PORT` to connect
 ### Example
 `python3 -m http.server 8000`
 
-then go to the page `localhost:8000`
+
+then go to the page [localhost:8000](http://localhost:8000/)
