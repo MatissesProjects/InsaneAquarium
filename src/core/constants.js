@@ -37,10 +37,17 @@ export const BREEDER_FISH_HUNGER_RATE = 0.00006;
 export const BREEDER_FISH_BIRTH_INTERVAL = 20000;
 export const BREEDER_FISH_MAX_BABIES = 3;
 
+export const FEEDER_FISH_RADIUS = 20;
+export const FEEDER_FISH_SPEED = 0.045;
+export const FEEDER_FISH_HUNGER_RATE = 0.000055;
+export const FEEDER_FISH_FOOD_DROP_INTERVAL = 10000;
+export const FEEDER_FISH_FOOD_DROP_LEVEL = 1;
+
 export const ASSETS = {
   FISH : './assets/fish.svg',
   COIN : './assets/coin.svg',
   FOOD : './assets/food.svg',
   SNAIL: './assets/snail.svg',
   BREEDER: './assets/breeder.svg',
+  FEEDER: './assets/feeder.svg',
 };

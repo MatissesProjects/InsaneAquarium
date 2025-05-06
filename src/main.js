@@ -8,6 +8,7 @@ import { initInputSystem } from './systems/InputSystem.js';
 import { Food } from './entities/Food.js';
 import { Fish } from './entities/Fish.js';
 import { BreederFish } from './entities/BreederFish.js';
+import { FeederFish } from './entities/FeederFish.js';
 import { Snail } from './entities/Snail.js';
 
 let score = 0;
@@ -130,9 +131,14 @@ for (let i = 0; i < 2; i++) {
     });
 }
 
+// 4. Initial Game State Setup
 new Snail({});
 new BreederFish({
     x: SVG_WIDTH * 0.75, // Example position
+    y: SVG_HEIGHT * 0.5,
+});
+new FeederFish({
+    x: SVG_WIDTH * 0.25, // Example position
     y: SVG_HEIGHT * 0.5,
 });
 

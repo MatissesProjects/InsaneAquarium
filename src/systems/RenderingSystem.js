@@ -18,6 +18,7 @@ function addEntityElement(payload) {
     switch (entity.constructor.name) {
         case 'Fish': assetUrl = ASSETS.FISH; break;
         case 'BreederFish': assetUrl = ASSETS.BREEDER; break;
+        case 'FeederFish': assetUrl = ASSETS.FEEDER; break;
         case 'Coin': assetUrl = ASSETS.COIN; break;
         case 'Food': assetUrl = ASSETS.FOOD; break;
         case 'Snail': assetUrl = ASSETS.SNAIL; break;
@@ -52,7 +53,8 @@ function renderAll() {
         const topLeftX = entity.x - entity.r;
         const topLeftY = entity.y - entity.r;
 
-        if (entity.constructor.name === 'Fish' || entity.constructor.name === 'BreederFish') {
+        if (entity.constructor.name === 'Fish' || entity.constructor.name === 'BreederFish' ||
+            entity.constructor.name === 'FeederFish') {
             if (entity.facingRight) {
                 const diameter = entity.r * 2;
                 transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
