@@ -1,21 +1,18 @@
 import { bus } from '../core/EventBus.js';
 import { entityManager } from './EntityManager.js';
-import { distanceSquared } from '../core/utils.js'; // For checking click distance
+import { distanceSquared } from '../core/utils.js';
 
 const svgCanvas = document.getElementById('game-canvas');
 
 function getMousePosition(event) {
   const CTM = svgCanvas.getScreenCTM();
-  // Adjust for responsive SVG scaling if necessary (using viewBox)
   const viewbox = svgCanvas.viewBox.baseVal;
   const svgPoint = svgCanvas.createSVGPoint();
   svgPoint.x = event.clientX;
   svgPoint.y = event.clientY;
 
   const pt = svgPoint.matrixTransform(CTM.inverse());
-//   console.log(`Click: client(${event.clientX}, ${event.clientY}) -> svg(${pt.x}, ${pt.y})`);
   return { x: pt.x, y: pt.y };
-
 }
 
 
@@ -37,14 +34,13 @@ function handleCanvasClick(event) {
     if (!clickedEntity) {
         for (const boss of entityManager.getEntitiesByType('Boss')) {
             if (!boss.alive) continue;
-            // Use actual radius for boss click check
             const clickRadiusSqBoss = boss.r * boss.r;
             const distSqBoss = distanceSquared(clickPos.x, clickPos.y, boss.x, boss.y);
 
             if (distSqBoss < clickRadiusSqBoss && distSqBoss < minDistanceSq) {
                 // minDistanceSq = distSqBoss; // Not strictly needed if we prioritize boss over background
                 clickedEntity = boss;
-                break; // Found the boss, no need to check others if only one
+                break;
             }
         }
     }

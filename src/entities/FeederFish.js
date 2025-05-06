@@ -12,9 +12,8 @@ import {
 
 export class FeederFish extends Fish {
     constructor(config = {}) {
-        // Override default Fish parameters with FeederFish specific ones
         const feederConfig = {
-            ...config, // Pass through any x, y from caller
+            ...config,
             radius: config.radius ?? FEEDER_FISH_RADIUS,
             speed: config.speed ?? FEEDER_FISH_SPEED,
             hungerRate: config.hungerRate ?? FEEDER_FISH_HUNGER_RATE,
