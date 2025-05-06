@@ -49,7 +49,7 @@ svg {
     user-select: none;
     text-align: center;
     display: flex;
-    flex-direction: column;    /* keep label above cost */
+    flex-direction: column;
     align-items: center;
 }
 
@@ -57,3 +57,13 @@ svg {
     opacity: 0.4;
     cursor: not-allowed;
 }
+
+.aquarium {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    filter: url(#water-filter);
+    pointer-events: none;
+  }

@@ -10,7 +10,47 @@
   <div id="game-container">
     <div id="shop-container"></div>
     <svg id="game-canvas" viewBox="0 0 800 350" preserveAspectRatio="xMidYMid meet">
-      <!-- Entities will be <circle class="fish">, <text class="coin">, etc. -->
+      <defs>
+        <!-- Water filter -->
+        <filter id="water-filter">
+          <feTurbulence type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="2" result="noise" />
+          <feTurbulence type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="2" seed="2" result="noise2">
+            <animate attributeName="baseFrequency" from="0.015 0.04" to="0.02 0.06" dur="10s" repeatCount="indefinite"/>
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise2" scale="6" xChannelSelector="R" yChannelSelector="G" />
+          <feComponentTransfer>
+            <feFuncA type="linear" slope="0.6" />
+          </feComponentTransfer>
+        </filter>
+    
+        <filter id="sand-filter">
+          <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" result="sandNoise" />
+          <!-- colorize to sandy tones -->
+          <feColorMatrix type="matrix" values="
+            0.8 0 0 0 0.76
+            0 0.8 0 0 0.7
+            0 0 0.6 0 0.5
+            0 0 0 1 0
+          "/>
+        </filter>
+      </defs>
+    
+      <!-- Light shaft overlays -->
+      <g>
+        <rect width="200" height="350" fill="#00408055" opacity="0.15" />
+        <rect width="100" height="350" fill="#0066cc55" opacity="0.10" />
+        <rect width="125" height="350" fill="#0099ff55" opacity="0.08" />
+      </g>
+    
+      <!-- Main underwater content with water distortion -->
+      <g filter="url(#water-filter)" opacity="0.8">
+        <rect width="800" height="350" fill="#0066cc55" />
+        <!-- game elements (fish, plants, etc.) go here -->
+      </g>
+    
+      <!-- Sand layer at bottom 5% with grain texture -->
+      <rect x="0" y="332.5" width="800" height="55" fill="#C2B280"/>
+      <rect x="0" y="332.5" width="800" height="17.5" fill="#C2B280" filter="url(#sand-filter)" />
     </svg>
   </div>
 
