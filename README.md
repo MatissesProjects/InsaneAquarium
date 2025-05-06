@@ -1,8 +1,7 @@
 # InsaneAquarium
 This is a [clone of a game](https://store.steampowered.com/app/3320/Insaniquarium_Deluxe/) from popcap which was about feeding fish and keeping them alive against bosses
 
-![image](https://github.com/user-attachments/assets/39ff5b35-6693-400e-8aa9-95bc3a1ed351)
-
+![InsaneAquarium](https://github.com/user-attachments/assets/73fa369c-deaa-42cf-bbac-6a076964c559)
 
 # Twitch integrations
 we will be integrating twitch for this
@@ -11,3 +10,8 @@ we will be integrating twitch for this
 download the repo
 then run your favorite npm or python server on any port
 use that `localhost:PORT` to connect
+
+### Example
+`python3 -m http.server 8000`
+
+then go to the page `localhost:8000`
