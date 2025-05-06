@@ -2,7 +2,7 @@ import { bus } from '../core/EventBus.js';
 import { createSpriteElement } from '../core/utils.js';
 import { ASSETS, DEATH_THRESHOLD } from '../core/constants.js';
 
-const entityMap = new Map(); // Map entity instance to its SVG element
+const entityMap = new Map();
 const svgCanvas = document.getElementById('game-canvas');
 
 function addEntityElement(payload) {
@@ -19,6 +19,7 @@ function addEntityElement(payload) {
         case 'Fish': assetUrl = ASSETS.FISH; break;
         case 'Coin': assetUrl = ASSETS.COIN; break;
         case 'Food': assetUrl = ASSETS.FOOD; break;
+        case 'Snail': assetUrl = ASSETS.SNAIL; break;
         default:
             console.warn(`[Renderer] No asset defined for ${entity.constructor.name}`);
             return;
@@ -43,7 +44,7 @@ function removeEntityElement(payload) {
 function renderAll() {
     for (const [entity, el] of entityMap.entries()) {
         if (!entity || typeof entity.x === 'undefined' || typeof entity.y === 'undefined' || typeof entity.r === 'undefined') {
-            continue; // Skip rendering if essential properties missing
+            continue;
         }
 
         let transform;
@@ -61,9 +62,18 @@ function renderAll() {
             const currentHunger = entity.hunger ?? 0;
             const deathThreshold = entity.deathThreshold ?? DEATH_THRESHOLD ?? 10;
             const hungerRatio = Math.max(0, Math.min(1, currentHunger / deathThreshold));
-            const hueRotateDegrees = hungerRatio * -85; // 0 (normal) to -85 (yellowish)
+            const hueRotateDegrees = hungerRatio * -85;
 
             el.style.filter = `hue-rotate(${hueRotateDegrees}deg)`;
+        } else if (entity.constructor.name === 'Snail') {
+            if (entity.facingRight) {
+                transform = `translate(${topLeftX}, ${topLeftY})`;
+           } else {
+                const diameter = entity.r * 2;
+                transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
+           }
+           el.style.filter = 'none';
+    
         } else {
             transform = `translate(${topLeftX}, ${topLeftY})`;
             el.style.filter = 'none';
@@ -75,6 +85,6 @@ function renderAll() {
 export function initRenderingSystem() {
     bus.on('entityAdded', addEntityElement);
     bus.on('entityRemoved', removeEntityElement);
-    bus.on('render', renderAll); // Listen for the main render signal
+    bus.on('render', renderAll);
     console.log('Rendering System Initialized');
 }

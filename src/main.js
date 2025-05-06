@@ -7,6 +7,7 @@ import { initRenderingSystem } from './systems/RenderingSystem.js';
 import { initInputSystem } from './systems/InputSystem.js';
 import { Food } from './entities/Food.js';
 import { Fish } from './entities/Fish.js';
+import { Snail } from './entities/Snail.js';
 
 let score = 0;
 let foodLevel = 1;
@@ -127,6 +128,8 @@ for (let i = 0; i < 2; i++) {
         hungerRate: HUNGER_RATE * (0.8 + Math.random() * 0.4),
     });
 }
+
+new Snail({});
 
 function handleBuyFish() {
     if (score >= FISH_COST) {

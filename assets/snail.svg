@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="94.733978mm"
+   height="57.703262mm"
+   viewBox="0 0 94.733978 57.703262"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4 (86a8ad7, 2024-10-11)"
+   sodipodi:docname="drawing.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.4520903"
+     inkscape:cx="430.414"
+     inkscape:cy="848.77641"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer2">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="94.733978"
+       height="57.703262"
+       id="page2"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Animals"
+     inkscape:highlight-color="#6cb1f6"
+     transform="translate(-105.10968,-180.67306)">
+    <g
+       id="g33"
+       inkscape:label="snail"
+       inkscape:export-filename="assets\snail.png"
+       inkscape:export-xdpi="96"
+       inkscape:export-ydpi="96">
+      <path
+         style="fill:#8a4c15;fill-opacity:1;stroke-width:0.546429;stroke-dasharray:0.409821, 0.546429, 0.273215, 0.546429"
+         d="m 173.5608,207.05462 c 0.90119,2.16904 -5.0661,3.86808 -4.85006,6.2236 0.28764,3.13627 4.25522,3.32156 7.18528,2.64033 4.43149,-1.03032 5.7921,-7.14817 4.85007,-10.18409 -3.39602,-10.94449 -26.46039,-6.26334 -26.76518,7.73236 -0.15871,7.28823 7.95478,13.86772 14.72983,15.46472 5.89493,1.38954 12.96333,-1.75491 17.06504,-6.4122 4.33901,-4.9267 6.71325,-12.95213 5.0297,-19.42519 -1.6954,-6.51865 -7.68529,-12.1397 -13.83167,-14.14457 -8.12215,-2.64933 -18.40061,-0.90922 -25.14848,4.52626 -4.65511,3.74975 -6.10827,10.76773 -7.36491,16.78489 -1.30808,6.2634 4.37014,14.75721 0,19.2366 -5.35713,5.49102 -18.72833,-0.56354 -24.42996,-5.65783 -7.70046,-6.88019 2.67134,-19.90563 -3.85032,-28.01836 -0.30356,-0.37763 0.44901,-6.34555 -0.21777,-6.34681 -0.98829,-0.002 0.0576,5.72182 -4.33794,5.89631 -5.20266,0.20653 -4.50184,-5.61448 -5.08655,-5.60955 -0.57086,0.005 -0.38391,7.56325 -0.65874,8.88897 -2.43249,11.73393 0.91707,29.55801 9.84015,37.07087 7.00741,5.89995 25.68768,0.14797 34.66898,1e-5 16.58669,-0.27326 27.30486,6.69218 42.0339,-1.32017 1.97784,-1.07591 4.36546,-3.35977 3.95191,-5.65782 -0.39476,-2.19356 -3.26763,-3.43127 -5.38896,-3.58329 -3.02078,-0.21648 -5.30998,3.25866 -8.26308,3.96047 -6.89218,1.63792 -14.90867,3.76269 -21.19659,0.3772 -5.70491,-3.0716 -11.70645,-9.91115 -10.95755,-16.59629 0.90147,-8.04702 9.59369,-15.15806 17.24468,-16.2191 6.31833,-0.87622 14.92091,2.75138 17.06504,9.05252 1.34381,3.94915 -1.72729,8.88942 -4.85006,11.50425 -3.6723,3.07496 -9.63412,5.04228 -13.83167,2.82891 -2.96764,-1.56484 -5.89157,-6.36326 -4.31117,-9.42971 1.52337,-2.9558 10.39622,-6.66373 11.67608,-3.58329 z"
+         id="path26"
+         sodipodi:nodetypes="ssssssssssssssssssssssssssssssss"
+         inkscape:export-filename="assets\snail.png"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96" />
+      <path
+         style="fill:#e0b134;fill-opacity:0.741379;stroke-width:0.765;stroke-dasharray:0.573749, 0.765, 0.3825, 0.765"
+         d="m 138.11748,227.79077 c -7.14782,-7.06629 2.60215,-27.01701 4.63827,-33.49864 3.1081,-9.89409 20.63818,-14.74102 30.92183,-13.39947 10.62371,1.38592 19.02804,8.74563 24.47977,19.06846 6.54155,12.38638 -7.34307,27.50478 -17.78005,29.8911 -11.72743,2.68137 -33.70463,6.39616 -42.25982,-2.06145 z"
+         id="path27"
+         sodipodi:nodetypes="ssssss" />
+    </g>
+  </g>
+</svg>
