@@ -38,6 +38,9 @@ export class Boss extends Entity {
 
         this.targetFish = null;
         this.retargetTimer = 0; // Timer to pick a new fish target
+        this.isPushed = false;
+        this.pushedTimer = 0;
+        this.pushedDirection = 0; // 1 for right, -1 for left
 
         console.log(`Boss created @ (${this.x.toFixed(0)},${this.y.toFixed(0)}) with ${this.hp} HP.`);
 
@@ -53,37 +56,71 @@ export class Boss extends Entity {
     };
 
     update(dt) {
-        this.retargetTimer -= dt;
-        if (!this.targetFish || !this.targetFish.alive || this.retargetTimer <= 0) {
-            this.selectTargetFish();
-            this.retargetTimer = 2000 + Math.random() * 3000; // Retarget every 2-5 seconds
-        }
+        // --- Handle Push State ---
+        if (this.isPushed) {
+            this.pushedTimer -= dt;
+            
+            // Apply push velocity (already set in handleClicked)
+            // this.x += this.pushedDirection * (this.speed * 1.5) * dt; // vx is already set
 
-        if (this.targetFish) {
-            const dx = this.targetFish.x - this.x;
-            const dy = this.targetFish.y - this.y;
-            const dist = Math.sqrt(dx * dx + dy * dy); // distance() util can be used here too
-
-            if (dist > this.r * 0.5) { // Move if not too close
-                this.vx = (dx / dist) * this.speed;
-                this.vy = (dy / dist) * this.speed;
-            } else {
-                this.vx = 0;
-                this.vy = 0;
+            if (this.pushedTimer <= 0) {
+                this.isPushed = false;
+                this.pushedDirection = 0;
+                // After push, boss will naturally re-evaluate target or wander
+                this.vx = 0; // Reset vx so it doesn't keep gliding
+                this.selectTargetFish(); // Re-evaluate target immediately
             }
-        } else {
-            this.vx *= 0.95;
-            this.vy *= 0.95;
         }
+
+        // --- Target Selection (only if NOT being pushed) ---
+        if (!this.isPushed) {
+            this.retargetTimer -= dt;
+            if (!this.targetFish || !this.targetFish.alive || this.retargetTimer <= 0) {
+                this.selectTargetFish();
+                this.retargetTimer = 2000 + Math.random() * 3000;
+            }
+        }
+
+        // --- Movement (only if NOT being pushed, or if pushed logic sets vx/vy) ---
+        if (!this.isPushed) {
+            if (this.targetFish) {
+                const dx = this.targetFish.x - this.x;
+                const dy = this.targetFish.y - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+
+                if (dist > this.r * 0.5) {
+                    this.vx = (dx / dist) * this.speed;
+                    this.vy = (dy / dist) * this.speed;
+                } else {
+                    this.vx = 0;
+                    this.vy = 0;
+                }
+            } else {
+                // No fish to target and not pushed, slow down/wander (currently slows down)
+                this.vx *= 0.95;
+                this.vy *= 0.95;
+                // If vx/vy become very small, could initiate a gentle wander if desired
+                if (Math.abs(this.vx) < 0.001 && Math.abs(this.vy) < 0.001 && !this.targetFish) {
+                    // Example: Small random movement if completely idle
+                    // if (Math.random() < 0.01) { // Low chance per frame
+                    //     this.vx = (Math.random() - 0.5) * this.speed * 0.5;
+                    //     this.vy = (Math.random() - 0.5) * this.speed * 0.5;
+                    // }
+                }
+            }
+        }
+        // else, if pushed, vx is already set by handleClicked or previous push update iteration
 
         this.x += this.vx * dt;
         this.y += this.vy * dt;
 
+        // Clamp position
         this.x = Math.max(this.r, Math.min(SVG_WIDTH - this.r, this.x));
         this.y = Math.max(this.r, Math.min(SVG_HEIGHT - this.r, this.y));
 
-        if (this.vx < 0.001) this.facingRight = true;
-        else if (this.vx > -0.001) this.facingRight = false;
+        // Update facing direction
+        if (this.vx > 0.001) this.facingRight = false;
+        else if (this.vx < -0.001) this.facingRight = true;
 
         if (this.attackTimer > 0) {
             this.attackTimer -= dt;
@@ -114,17 +151,44 @@ export class Boss extends Entity {
         }
     }
 
-    handleClicked = (clickedEntity) => {
+    handleClicked = (eventData) => { // eventData now contains { entity, clickPosition }
         if (!this.alive) return;
 
-        console.log(`Clicked entity: ${clickedEntity.constructor.name}`);
+        const { entity: clickedEntity, clickPosition } = eventData;
 
         if (clickedEntity === this) {
-            console.log('Boss was clicked by player!');
-            // Player deals damage to the boss
-            const playerClickDamage = 10; // Example damage amount, could be a constant
+            console.log('Boss was clicked by player at SVG coords:', clickPosition);
+            const playerClickDamage = 10; // Standard damage for a click
             this.takeDamage(playerClickDamage);
-            // TODO: Add visual/audio feedback for player hitting boss
+
+            // --- "Push" Logic ---
+            // Determine if click was on left or right half of the boss
+            const clickRelativeToBossX = clickPosition.x - this.x;
+
+            const pushForce = this.speed * 50; // How much the click "pushes" the boss horizontally
+                                             // This is an impulse, so we'll set vx directly for a short burst or override target
+            const pushDuration = 300; // ms for how long the push effect influences movement
+
+            if (clickRelativeToBossX < 0) {
+                // Clicked on the LEFT side, push boss RIGHT
+                console.log("Boss: Clicked on left, pushing right.");
+                this.vx = this.speed * 1.5; // Override current vx to move right
+                // Optional: Could set a temporary target or a timed velocity override
+                this.pushedDirection = 1; // 1 for right
+            } else {
+                // Clicked on the RIGHT side, push boss LEFT
+                console.log("Boss: Clicked on right, pushing left.");
+                this.vx = -this.speed * 10.5; // Override current vx to move left
+                this.pushedDirection = -1; // -1 for left
+            }
+
+            this.isPushed = true;
+            this.pushedTimer = pushDuration;
+
+            // Interrupt current fish targeting to react to push
+            this.targetFish = null;
+            this.retargetTimer = pushDuration + 500; // Don't pick a new fish target immediately
+
         }
     };
 

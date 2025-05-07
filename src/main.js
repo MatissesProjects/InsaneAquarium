@@ -19,6 +19,7 @@ const scoreDisplay = document.createElement('div');
 const shopContainer = document.getElementById('shop-container');
 const buyFishButton = document.createElement('button');
 const upgradeFoodButton = document.createElement('button');
+const placeBoss = document.createElement('button');
 
 function setupScoreDisplay() {
     scoreDisplay.style.position = 'absolute';
@@ -49,6 +50,10 @@ function setupShopUI() {
     buyFishButton.textContent = `Buy Fish (${FISH_COST})`;
     buyFishButton.style.padding = '5px';
     shopContainer.appendChild(buyFishButton);
+
+    placeBoss.textContent = 'Spawn Boss';
+    placeBoss.style.padding = '5px';
+    shopContainer.appendChild(placeBoss);
 
     updateUpgradeButton();
     upgradeFoodButton.style.padding = '5px';
@@ -96,6 +101,10 @@ function handleUpgradeFood() {
     }
 }
 
+function handlePlaceBoss() {
+    bus.emit('spawnBossRequest');
+}
+
 function handleBackgroundClick(clickPos) {
     const canAfford = score >= FOOD_COST;
     if (canAfford) {
@@ -119,6 +128,7 @@ console.log('UI Initialized.');
 bus.on('coinCollected', handleCoinCollected);
 buyFishButton.addEventListener('click', handleBuyFish);
 upgradeFoodButton.addEventListener('click', handleUpgradeFood);
+placeBoss.addEventListener('click', handlePlaceBoss);
 console.log('Event Listeners Attached.');
 
 bus.on('backgroundClicked', handleBackgroundClick);
@@ -178,9 +188,9 @@ function spawnBoss() {
     bus.emit('bossSpawned', { boss: newBoss });
 }
 
-setTimeout(() => {
-    bus.emit('spawnBossRequest');
-}, 1000);
+// setTimeout(() => {
+//     bus.emit('spawnBossRequest');
+// }, 1000);
 
 bus.on('spawnBossRequest', spawnBoss);
 

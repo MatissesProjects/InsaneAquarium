@@ -10,7 +10,7 @@ export class Coin extends FallingEntity {
     this.lifespan = COIN_LIFESPAN;
     entityManager.addEntity(this);
     bus.on('update', this.updateCallback);
-    bus.on('entityClicked', this.clickCallback);
+    bus.on('entityClicked', this.handleClickEvent);
   }
 
   updateCallback = (dt) => {
@@ -18,11 +18,16 @@ export class Coin extends FallingEntity {
     this.update(dt);
   };
 
-  clickCallback = (clickedEntity) => {
+  handleClickEvent = (eventData) => {
     if (!this.alive) return;
+
+    // The eventData is now an object: { entity: clickedEntity, clickPosition: clickPos }
+    const { entity: clickedEntity } = eventData;
+
     if (clickedEntity === this) {
+        // console.log('Coin clicked:', this);
         bus.emit('coinCollected', this.amount);
-        this.remove();
+        this.remove(); // Remove the coin after collection
     }
   };
 
@@ -41,7 +46,7 @@ export class Coin extends FallingEntity {
 
     super.remove();
     bus.off('update', this.updateCallback);
-    bus.off('entityClicked', this.clickCallback);
+    bus.off('entityClicked', this.handleClickEvent);
     entityManager.removeEntity(this);
   }
 }
