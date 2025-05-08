@@ -27,8 +27,7 @@ export class BreederFish extends Fish {
         this.birthInterval = BREEDER_FISH_BIRTH_INTERVAL;
         this.birthTimer = this.birthInterval * Math.random();
         this.babiesProduced = 0;
-
-        console.log(`BreederFish created @ (${this.x.toFixed(0)},${this.y.toFixed(0)})`);
+        // console.log(`BreederFish created @ (${this.x.toFixed(0)},${this.y.toFixed(0)})`);
     }
 
     // We still want all the base Fish update logic (hunger, movement, etc.)
@@ -47,7 +46,7 @@ export class BreederFish extends Fish {
     }
 
     giveBirth() {
-        console.log(`BreederFish @ (${this.x.toFixed(0)},${this.y.toFixed(0)}) is giving birth!`);
+        // console.log(`BreederFish @ (${this.x.toFixed(0)},${this.y.toFixed(0)}) is giving birth!`);
         new Fish({
             x: this.x + (Math.random() - 0.5) * this.r * 2, // Spawn nearby
             y: this.y + (Math.random() - 0.5) * this.r * 2,

@@ -33,14 +33,14 @@ export const SNAIL_SPEED = 0.015;
 
 export const BREEDER_FISH_RADIUS = 22;
 export const BREEDER_FISH_SPEED = 0.04;
-export const BREEDER_FISH_HUNGER_RATE = 0.00006;
+export const BREEDER_FISH_HUNGER_RATE = 0.000006;
 export const BREEDER_FISH_BIRTH_INTERVAL = 20000;
 export const BREEDER_FISH_MAX_BABIES = 3;
 
 export const FEEDER_FISH_RADIUS = 20;
 export const FEEDER_FISH_SPEED = 0.045;
-export const FEEDER_FISH_HUNGER_RATE = 0.000055;
-export const FEEDER_FISH_FOOD_DROP_INTERVAL = 10000;
+export const FEEDER_FISH_HUNGER_RATE = 0.0000055;
+export const FEEDER_FISH_FOOD_DROP_INTERVAL = 1000;
 export const FEEDER_FISH_FOOD_DROP_LEVEL = 1;
 
 export const BOSS_RADIUS = 40;
@@ -49,12 +49,25 @@ export const BOSS_HP = 500;
 export const BOSS_ATTACK_POWER = 1;
 export const BOSS_ATTACK_COOLDOWN = 1500;
 
+export const FISH_INITIAL_RADIUS_SMALL = 10;
+export const FISH_FOOD_TO_LEVEL_2 = 1; // 5
+export const FISH_FOOD_TO_LEVEL_3 = 2; // 15
+export const COIN_VALUE_LEVEL_1 = 0;
+export const COIN_VALUE_LEVEL_2 = 1;
+export const COIN_VALUE_LEVEL_3 = 5;
+
 export const ASSETS = {
   FISH : './assets/fish.svg',
-  COIN : './assets/coin.svg',
+  COIN_SILVER : './assets/coin_silver.svg',
+  COIN_GOLD : './assets/coin_gold.svg',
   FOOD : './assets/food.svg',
   SNAIL: './assets/snail.svg',
   BREEDER: './assets/breeder.svg',
   FEEDER: './assets/feeder.svg',
   BOSS_BARBARIAN: './assets/boss_barbarian.svg'
+};
+
+export const COIN_TYPES = {
+  SILVER: { value: 1, asset: ASSETS.COIN_SILVER, lifespan: COIN_LIFESPAN, },
+  GOLD:   { value: 5, asset: ASSETS.COIN_GOLD, lifespan: COIN_LIFESPAN, },
 };

@@ -42,8 +42,7 @@ export class Boss extends Entity {
         this.pushedTimer = 0;
         this.pushedDirection = 0; // 1 for right, -1 for left
 
-        console.log(`Boss created @ (${this.x.toFixed(0)},${this.y.toFixed(0)}) with ${this.hp} HP.`);
-
+        // console.log(`Boss created @ (${this.x.toFixed(0)},${this.y.toFixed(0)}) with ${this.hp} HP.`);
         bus.on('update', this.updateCallback);
         bus.on('entityClicked', this.handleClicked);
         entityManager.addEntity(this);

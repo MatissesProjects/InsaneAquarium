@@ -11,13 +11,15 @@ import { BreederFish } from './entities/BreederFish.js';
 import { FeederFish } from './entities/FeederFish.js';
 import { Snail } from './entities/Snail.js';
 import { Boss } from './entities/Boss.js';
+import { GameState } from './core/GameState.js';
 
-let score = 0;
-let foodLevel = 1;
-let isBossActive = false;
+// let score = 0;
+// let foodLevel = 1;
+// let isBossActive = false;
 const scoreDisplay = document.createElement('div');
 const shopContainer = document.getElementById('shop-container');
 const buyFishButton = document.createElement('button');
+const placeFeeder = document.createElement('button');
 const upgradeFoodButton = document.createElement('button');
 const placeBoss = document.createElement('button');
 
@@ -55,46 +57,59 @@ function setupShopUI() {
     placeBoss.style.padding = '5px';
     shopContainer.appendChild(placeBoss);
 
+    placeFeeder.textContent = 'Spawn Feeder';
+    placeFeeder.style.padding = '5px';
+    shopContainer.appendChild(placeFeeder);
+
     updateUpgradeButton();
     upgradeFoodButton.style.padding = '5px';
     shopContainer.appendChild(upgradeFoodButton);
 }
 
 function updateScoreDisplay() {
-    scoreDisplay.textContent = `Score: ${score}`;
+    scoreDisplay.textContent = `Score: ${GameState.getScore()}`;
 }
 
 function updateUpgradeButton() {
-    if (foodLevel >= MAX_FOOD_LEVEL) {
-        upgradeFoodButton.textContent = `Food Max Level (${foodLevel})`;
+    const currentFoodLevel = GameState.getFoodLevel();
+    const currentScore = GameState.getScore();
+    if (currentFoodLevel  >= MAX_FOOD_LEVEL) {
+        upgradeFoodButton.textContent = `Food Max Level (${currentFoodLevel })`;
         upgradeFoodButton.disabled = true;
     } else {
-        const cost = FOOD_UPGRADE_COST[foodLevel + 1];
-        upgradeFoodButton.textContent = `Upgrade Food (${cost}) Lvl: ${foodLevel}`;
+        const cost = FOOD_UPGRADE_COST[currentFoodLevel  + 1];
+        upgradeFoodButton.textContent = `Upgrade Food (${cost}) Lvl: ${currentFoodLevel}`;
         upgradeFoodButton.disabled = false;
     }
-    const nextCost = (foodLevel < MAX_FOOD_LEVEL) ? FOOD_UPGRADE_COST[foodLevel + 1] : Infinity;
-    upgradeFoodButton.style.opacity = (score >= nextCost && foodLevel < MAX_FOOD_LEVEL) ? '1' : '0.6';
-    buyFishButton.style.opacity = (score >= FISH_COST) ? '1' : '0.6';
-
+    const nextCost = (currentFoodLevel < MAX_FOOD_LEVEL) ? FOOD_UPGRADE_COST[currentFoodLevel + 1] : Infinity;
+    upgradeFoodButton.style.opacity = (currentScore >= nextCost && currentFoodLevel < MAX_FOOD_LEVEL) ? '1' : '0.6';
+    buyFishButton.style.opacity = (currentScore >= FISH_COST) ? '1' : '0.6';
 }
 
 function handleCoinCollected(amount) {
-    score += amount;
-    updateScoreDisplay();
-    updateUpgradeButton();
+    GameState.addScore(amount);
+    updateScoreDisplay(); // Use below bus on after this
+    updateUpgradeButton(); // Use below bus on after this
+    // score += amount;
+    // updateScoreDisplay();
+    // updateUpgradeButton();
     // console.log(`Score: ${score}`);
 }
 
+// bus.on('scoreChanged', updateScoreDisplay);
+// bus.on('scoreChanged', updateUpgradeButton);
+
 function handleUpgradeFood() {
-    if (foodLevel < MAX_FOOD_LEVEL) {
-        const cost = FOOD_UPGRADE_COST[foodLevel + 1];
-        if (score >= cost) {
-            score -= cost;
-            foodLevel++;
+    const currentFoodLevel = GameState.getFoodLevel();
+    const currentScore = GameState.getScore();
+    if (currentFoodLevel < MAX_FOOD_LEVEL) {
+        const cost = FOOD_UPGRADE_COST[currentFoodLevel + 1];
+        if (currentScore >= cost) {
+            currentScore -= cost;
+            currentFoodLevel++;
             updateScoreDisplay();
             updateUpgradeButton();
-            console.log(`Upgraded food to level ${foodLevel}!`);
+            console.log(`Upgraded food to level ${currentFoodLevel}!`);
         } else {
             console.log('Not enough money for food upgrade!');
         }
@@ -106,12 +121,13 @@ function handlePlaceBoss() {
 }
 
 function handleBackgroundClick(clickPos) {
-    const canAfford = score >= FOOD_COST;
+    const currentScore = GameState.getScore();
+    const canAfford = currentScore >= FOOD_COST;
     if (canAfford) {
-        score -= FOOD_COST;
+        GameState.addScore(-FOOD_COST);
         updateScoreDisplay();
         updateUpgradeButton();
-        new Food({ x: clickPos.x, y: clickPos.y, level: foodLevel });
+        new Food({ x: clickPos.x, y: clickPos.y, level: GameState.getFoodLevel() });
     } else {
         console.log("Not enough money to drop food!");
     }
@@ -129,10 +145,15 @@ bus.on('coinCollected', handleCoinCollected);
 buyFishButton.addEventListener('click', handleBuyFish);
 upgradeFoodButton.addEventListener('click', handleUpgradeFood);
 placeBoss.addEventListener('click', handlePlaceBoss);
+placeFeeder.addEventListener('click', () => {new FeederFish({
+    x: SVG_WIDTH * 0.25, // Example position
+    y: SVG_HEIGHT * 0.5,
+});});
 console.log('Event Listeners Attached.');
 
 bus.on('backgroundClicked', handleBackgroundClick);
 
+// 4. Initial Game State Setup
 console.log("Creating initial fish...");
 for (let i = 0; i < 2; i++) {
     new Fish({
@@ -142,8 +163,12 @@ for (let i = 0; i < 2; i++) {
         hungerRate: HUNGER_RATE * (0.8 + Math.random() * 0.4),
     });
 }
-
-// 4. Initial Game State Setup
+new Snail({});
+new Snail({});
+new Snail({});
+new Snail({});
+new Snail({});
+new Snail({});
 new Snail({});
 new BreederFish({
     x: SVG_WIDTH * 0.75, // Example position
@@ -155,13 +180,14 @@ new FeederFish({
 });
 
 function handleBuyFish() {
-    if (score >= FISH_COST) {
-        score -= FISH_COST;
+    const currentScore = GameState.getScore();
+    if (currentScore >= FISH_COST) {
+        GameState.addScore(-FISH_COST); // Use GameState (negative amount)
         updateScoreDisplay();
         updateUpgradeButton();
         new Fish({
-            x: SVG_WIDTH / 2 + (Math.random() - 0.5) * 50,
-            y: 50
+            x: Math.random() * 2 * SVG_WIDTH / 3,
+            y: Math.random() * 2 * SVG_HEIGHT / 3,
         });
         console.log('Bought fish!');
     } else {
@@ -170,22 +196,13 @@ function handleBuyFish() {
 }
 
 function spawnBoss() {
-    if (isBossActive) {
+    if (GameState.isBossActive()) {
         console.log("Boss already active, not spawning another.");
         return;
     }
     console.log("Spawning Boss!");
-    isBossActive = true;
-    const newBoss = new Boss({});
-    bus.on('bossDefeated', ({ boss }) => {
-        if (boss === newBoss) { // Check if it's the one we spawned
-            isBossActive = false;
-            console.log("Boss defeated, can spawn another later.");
-            // Potentially remove this specific listener if only one boss instance expected
-            // bus.off('bossDefeated', specificBossDefeatedHandler);
-        }
-    });
-    bus.emit('bossSpawned', { boss: newBoss });
+    GameState.spawnBoss();
+    // bus.emit('bossSpawned', { boss: newBoss });
 }
 
 // setTimeout(() => {

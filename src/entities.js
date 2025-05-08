@@ -1,4 +1,5 @@
 import { bus } from './EventBus.js';
+import { ASSETS } from './core/constants.js';
 
 export const foods = [];
 
@@ -11,9 +12,6 @@ const DEFAULT_HUNGRY_THRESH = 1;
 const DEFAULT_DEATH_THRESH = 5;
 const DEFAULT_DROP_INTERVAL = 10000;
 const COIN_LIFESPAN = 2000;
-const DEFAULT_FISH_SVG = 'assets/fish.svg';
-const DEFAULT_COIN_SVG = 'assets/coin.svg';
-const DEFAULT_FOOD_SVG = 'assets/food.svg';
 
 function createSprite(url, size) {
   const img = document.createElementNS('http://www.w3.org/2000/svg','image');
@@ -24,7 +22,7 @@ function createSprite(url, size) {
 }
 
 export class Food {
-  constructor(x, y, level = 1, gravity = DEFAULT_GRAVITY, svgUrl = DEFAULT_FOOD_SVG) {
+  constructor(x, y, level = 1, gravity = DEFAULT_GRAVITY, svgUrl = ASSETS.FOOD) {
     this.x = x;
     this.y = y;
     this.r = 4;
@@ -71,7 +69,7 @@ export class Food {
 }
 
 export class Coin {
-  constructor(x, y, amount = 1, gravity = DEFAULT_GRAVITY, svgUrl = DEFAULT_COIN_SVG) {
+  constructor(x, y, amount = 1, gravity = DEFAULT_GRAVITY, svgUrl = ASSETS.COIN_SILVER) {
     this.x = x;
     this.y = y;
     this.r = 16;
@@ -129,7 +127,7 @@ export class Fish {
     this.hungryThreshold = config.hungryThreshold ?? DEFAULT_HUNGRY_THRESH;
     this.deathThreshold = config.deathThreshold ?? DEFAULT_DEATH_THRESH;
     this.dropInterval = config.dropInterval ?? DEFAULT_DROP_INTERVAL;
-    this.svgUrl = config.svgUrl ?? DEFAULT_FISH_SVG;
+    this.svgUrl = config.svgUrl ?? ASSETS.FISH;
 
     this.dirChangeTimer = 0;
     this.direction = { x: 1, y: 0 };

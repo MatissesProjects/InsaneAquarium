@@ -24,8 +24,7 @@ export class Snail extends Entity {
         this.isWandering = true;
         this.dirChangeTimer = 2500 + Math.random() * 3000;
 
-        console.log(`Snail created at (${this.x}, ${this.y})`);
-
+        // console.log(`Snail created @ (${this.x}, ${this.y})`);
         entityManager.addEntity(this);
         bus.on('update', this.updateCallback);
     }

@@ -19,7 +19,7 @@ function addEntityElement(payload) {
         case 'Fish': assetUrl = ASSETS.FISH; break;
         case 'BreederFish': assetUrl = ASSETS.BREEDER; break;
         case 'FeederFish': assetUrl = ASSETS.FEEDER; break;
-        case 'Coin': assetUrl = ASSETS.COIN; break;
+        case 'Coin': assetUrl = entity.asset; break;
         case 'Food': assetUrl = ASSETS.FOOD; break;
         case 'Snail': assetUrl = ASSETS.SNAIL; break;
         case 'Boss': assetUrl = ASSETS.BOSS_BARBARIAN; break;
@@ -51,44 +51,51 @@ function renderAll() {
         }
 
         let transform;
-        const topLeftX = entity.x - entity.r;
-        const topLeftY = entity.y - entity.r;
+        const currentRadius = entity.r;
+        const currentDiameter = currentRadius * 2;
+        const topLeftX = entity.x - currentRadius;
+        const topLeftY = entity.y - currentRadius;
 
-        if (entity.constructor.name === 'Fish' || entity.constructor.name === 'BreederFish' ||
-            entity.constructor.name === 'FeederFish') {
+        el.setAttribute('width', currentDiameter);
+        el.setAttribute('height', currentDiameter);
+
+        if (entity.constructor.name === 'Fish' ||
+            entity.constructor.name === 'BreederFish' ||
+            entity.constructor.name === 'FeederFish')
+        {
             if (entity.facingRight) {
-                const diameter = entity.r * 2;
-                transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
+                transform = `translate(${topLeftX + currentDiameter}, ${topLeftY}) scale(-1, 1)`;
             } else {
                 transform = `translate(${topLeftX}, ${topLeftY})`;
             }
 
             const currentHunger = entity.hunger ?? 0;
-            const deathThreshold = entity.deathThreshold ?? DEATH_THRESHOLD ?? 10;
-            const hungerRatio = Math.max(0, Math.min(1, currentHunger / deathThreshold));
+            const entityDeathThreshold = entity.deathThreshold ?? DEATH_THRESHOLD ?? 10;
+            const hungerRatio = Math.max(0, Math.min(1, currentHunger / entityDeathThreshold));
             const hueRotateDegrees = hungerRatio * -85;
-
             el.style.filter = `hue-rotate(${hueRotateDegrees}deg)`;
+
         } else if (entity.constructor.name === 'Snail') {
             if (entity.facingRight) {
-                const diameter = entity.r * 2;
-                transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
+                transform = `translate(${topLeftX + currentDiameter}, ${topLeftY}) scale(-1, 1)`;
             } else {
                 transform = `translate(${topLeftX}, ${topLeftY})`;
             }
             el.style.filter = 'none';
-        }  else if (entity.constructor.name === 'Boss') {
-            if (entity.facingRight) {
+
+        } else if (entity.constructor.name === 'Boss') {
+             if (entity.facingRight) {
                  transform = `translate(${topLeftX}, ${topLeftY})`;
-            } else {
-                 const diameter = entity.r * 2;
-                 transform = `translate(${topLeftX + diameter}, ${topLeftY}) scale(-1, 1)`;
-            }
-            el.style.filter = 'none';
+             } else {
+                 transform = `translate(${topLeftX + currentDiameter}, ${topLeftY}) scale(-1, 1)`;
+             }
+             el.style.filter = 'none';
+
         } else {
             transform = `translate(${topLeftX}, ${topLeftY})`;
             el.style.filter = 'none';
         }
+
         el.setAttribute('transform', transform);
     }
 }

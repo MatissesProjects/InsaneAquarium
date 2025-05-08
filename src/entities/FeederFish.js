@@ -25,8 +25,7 @@ export class FeederFish extends Fish {
         this.foodDropInterval = FEEDER_FISH_FOOD_DROP_INTERVAL;
         this.foodDropTimer = this.foodDropInterval * Math.random(); // Stagger initial food drops
         this.foodDropLevel = config.foodDropLevel ?? FEEDER_FISH_FOOD_DROP_LEVEL;
-
-        console.log(`FeederFish created @ (${this.x.toFixed(0)},${this.y.toFixed(0)})`);
+        // console.log(`FeederFish created @ (${this.x.toFixed(0)},${this.y.toFixed(0)})`);
     }
 
     // Override the update method to add food dropping logic
@@ -47,7 +46,7 @@ export class FeederFish extends Fish {
     }
 
     dropFood() {
-        console.log(`FeederFish @ (${this.x.toFixed(0)},${this.y.toFixed(0)}) is dropping food!`);
+        // console.log(`FeederFish @ (${this.x.toFixed(0)},${this.y.toFixed(0)}) is dropping food!`);
         // Create a new Food instance slightly below the FeederFish
         // The food level can be configured or use a default for the FeederFish
         new Food({

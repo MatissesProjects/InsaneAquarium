@@ -1,13 +1,16 @@
 import { bus } from '../core/EventBus.js';
 import { entityManager } from '../systems/EntityManager.js';
-import { COIN_LIFESPAN, COIN_RADIUS } from '../core/constants.js';
+import { COIN_LIFESPAN, COIN_RADIUS, COIN_TYPES } from '../core/constants.js';
 import { FallingEntity } from './FallingEntity.js';
 
 export class Coin extends FallingEntity {
-  constructor({ x, y, amount = 1 }) {
+  constructor({ x, y, type }) {
     super(x, y, COIN_RADIUS);
-    this.amount = amount;
-    this.lifespan = COIN_LIFESPAN;
+    const coinData = COIN_TYPES[type.toUpperCase()] || COIN_TYPES.SILVER;
+    this.type = type.toUpperCase();
+    this.amount = coinData.value;
+    this.asset = coinData.asset;
+    this.lifespan = coinData.lifespan;
     entityManager.addEntity(this);
     bus.on('update', this.updateCallback);
     bus.on('entityClicked', this.handleClickEvent);
