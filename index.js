@@ -12,8 +12,8 @@ function loop(now) {
 }
 
 new Fish({ x: 200, y: 150 });
-setInterval(() => {
-  new Food({ x: Math.random() * 750, y: 0 });
-}, 2000);
+// setInterval(() => {
+//   new Food({ x: Math.random() * 750, y: 0 });
+// }, 2000);
 
 requestAnimationFrame(loop);

@@ -9,6 +9,7 @@ import {
     // General constants if needed
     SVG_WIDTH, SVG_HEIGHT, ASSETS
 } from '../core/constants.js';
+import { GameState } from '../core/GameState.js';
 
 export class FeederFish extends Fish {
     constructor(config = {}) {
@@ -52,10 +53,10 @@ export class FeederFish extends Fish {
         new Food({
             x: this.x,
             y: this.y + this.r * 0.5, // Drop slightly below
-            level: this.foodDropLevel
+            level: GameState.getFoodLevel()
         });
 
-        bus.emit('feederFoodDropped', { feederFish: this, foodLevel: this.foodDropLevel });
+        // bus.emit('feederFoodDropped', { feederFish: this, foodLevel: GameState.getFoodLevel() });
     }
 
     dropCoin() {

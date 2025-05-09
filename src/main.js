@@ -1,7 +1,7 @@
 import { bus } from './core/EventBus.js';
 import {
-    SVG_WIDTH, SVG_HEIGHT, FISH_COST,
-    FOOD_UPGRADE_COST, MAX_FOOD_LEVEL, FOOD_COST, FISH_SPEED, HUNGER_RATE 
+    SVG_WIDTH, SVG_HEIGHT, FISH_COST, FOOD_TYPES,
+    MAX_FOOD_LEVEL, FOOD_COST, FISH_SPEED, HUNGER_RATE 
 } from './core/constants.js';
 import { initRenderingSystem } from './systems/RenderingSystem.js';
 import { initInputSystem } from './systems/InputSystem.js';
@@ -73,15 +73,17 @@ function updateScoreDisplay() {
 function updateUpgradeButton() {
     const currentFoodLevel = GameState.getFoodLevel();
     const currentScore = GameState.getScore();
+    // console.log(`Current Food Level: ${currentFoodLevel}, Current Score: ${currentScore}`);
     if (currentFoodLevel  >= MAX_FOOD_LEVEL) {
         upgradeFoodButton.textContent = `Food Max Level (${currentFoodLevel })`;
         upgradeFoodButton.disabled = true;
     } else {
-        const cost = FOOD_UPGRADE_COST[currentFoodLevel  + 1];
+        const cost = FOOD_TYPES[currentFoodLevel].nextCost;
         upgradeFoodButton.textContent = `Upgrade Food (${cost}) Lvl: ${currentFoodLevel}`;
         upgradeFoodButton.disabled = false;
     }
-    const nextCost = (currentFoodLevel < MAX_FOOD_LEVEL) ? FOOD_UPGRADE_COST[currentFoodLevel + 1] : Infinity;
+    const nextCost = FOOD_TYPES[currentFoodLevel].nextCost;
+    // const nextCost = (currentFoodLevel < MAX_FOOD_LEVEL) ? FOOD_UPGRADE_COST[currentFoodLevel + 1] : Infinity;
     upgradeFoodButton.style.opacity = (currentScore >= nextCost && currentFoodLevel < MAX_FOOD_LEVEL) ? '1' : '0.6';
     buyFishButton.style.opacity = (currentScore >= FISH_COST) ? '1' : '0.6';
 }
@@ -103,13 +105,14 @@ function handleUpgradeFood() {
     const currentFoodLevel = GameState.getFoodLevel();
     const currentScore = GameState.getScore();
     if (currentFoodLevel < MAX_FOOD_LEVEL) {
-        const cost = FOOD_UPGRADE_COST[currentFoodLevel + 1];
+        const cost = FOOD_TYPES[currentFoodLevel].nextCost;
+        console.log(`Current Food Level: ${currentFoodLevel}, Cost: ${cost}`);
         if (currentScore >= cost) {
-            currentScore -= cost;
-            currentFoodLevel++;
+            GameState.setScore(currentScore - cost);
+            GameState.setFoodLevel(currentFoodLevel + 1);
             updateScoreDisplay();
             updateUpgradeButton();
-            console.log(`Upgraded food to level ${currentFoodLevel}!`);
+            console.log(`Upgraded food to level ${GameState.getFoodLevel()}!`);
         } else {
             console.log('Not enough money for food upgrade!');
         }
@@ -146,8 +149,8 @@ buyFishButton.addEventListener('click', handleBuyFish);
 upgradeFoodButton.addEventListener('click', handleUpgradeFood);
 placeBoss.addEventListener('click', handlePlaceBoss);
 placeFeeder.addEventListener('click', () => {new FeederFish({
-    x: SVG_WIDTH * 0.25, // Example position
-    y: SVG_HEIGHT * 0.5,
+    x: SVG_WIDTH * Math.random(), // Example position
+    y: SVG_HEIGHT * Math.random(),
 });});
 console.log('Event Listeners Attached.');
 

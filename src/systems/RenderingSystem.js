@@ -20,7 +20,7 @@ function addEntityElement(payload) {
         case 'BreederFish': assetUrl = ASSETS.BREEDER; break;
         case 'FeederFish': assetUrl = ASSETS.FEEDER; break;
         case 'Coin': assetUrl = entity.asset; break;
-        case 'Food': assetUrl = ASSETS.FOOD; break;
+        case 'Food': assetUrl = entity.asset; break;
         case 'Snail': assetUrl = ASSETS.SNAIL; break;
         case 'Boss': assetUrl = ASSETS.BOSS_BARBARIAN; break;
         default:

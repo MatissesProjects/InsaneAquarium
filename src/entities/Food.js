@@ -1,12 +1,15 @@
 import { bus } from '../core/EventBus.js';
 import { entityManager } from '../systems/EntityManager.js';
-import { BASE_FOOD_LIFETIME, FOOD_RADIUS } from '../core/constants.js';
+import { BASE_FOOD_LIFETIME, FOOD_TYPES } from '../core/constants.js';
 import { FallingEntity } from './FallingEntity.js';
 
 export class Food extends FallingEntity {
   constructor({ x, y, level = 1 }) {
-    super(x, y, FOOD_RADIUS);
-    this.lifespan = BASE_FOOD_LIFETIME * level;
+    const foodData = FOOD_TYPES[level];
+    super(x, y, foodData.radius);
+    this.asset = foodData.asset;
+    this.lifespan = foodData.lifespan;
+    this.nutrition = foodData.nutrition;
     entityManager.addEntity(this);
     bus.on('update', this.updateCallback);
   }
