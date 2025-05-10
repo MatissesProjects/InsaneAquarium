@@ -4,12 +4,10 @@ import { entityManager } from '../systems/EntityManager.js';
 import {
     ASSETS, SVG_WIDTH, SVG_HEIGHT,
     FISH_SPEED, HUNGER_RATE, HUNGRY_THRESHOLD, DEATH_THRESHOLD,
-    DROP_INTERVAL, COIN_DROP_COOLDOWN, FISH_VERTICAL_SPEED, FISH_TURN_RATE,
-    FISH_EAT_RADIUS_SQ,
-    FISH_INITIAL_RADIUS_SMALL, FISH_FOOD_TO_LEVEL_2, FISH_FOOD_TO_LEVEL_3,
-    COIN_VALUE_LEVEL_1, COIN_VALUE_LEVEL_2, COIN_VALUE_LEVEL_3,
+    DROP_INTERVAL, COIN_DROP_COOLDOWN,
+    FISH_INITIAL_RADIUS_SMALL, FISH_FOOD_TO_LEVEL_2, FISH_FOOD_TO_LEVEL_3, FISH_FOOD_TO_LEVEL_4,
     FISH_LEVEL_SPEED_MULTIPLIER, FISH_LEVEL_RADIUS_MULTIPLIER,
-    FISH_LEVEL_DROP_INTERVAL_MULTIPLIER
+    FISH_LEVEL_DROP_INTERVAL_MULTIPLIER, COIN_TYPES, NUMBER_BASE_FISH_LEVELS
 } from '../core/constants.js';
 import { distanceSquared } from '../core/utils.js';
 import { Coin } from './Coin.js';
@@ -21,7 +19,7 @@ export class Fish extends Entity {
         this.level = 1;
         this.r = config.radius ?? FISH_INITIAL_RADIUS_SMALL;
         this.canDropCoins = false;
-        this.coinDropValue = COIN_VALUE_LEVEL_1;
+        this.coinDropValue = 0;
         this.foodEatenThisLevel = 0;
         this.nextUpgradeThreshold = FISH_FOOD_TO_LEVEL_2;
 
@@ -131,7 +129,8 @@ export class Fish extends Entity {
     onEat() {
         this.hunger = 0;
         this.isHungry = false;
-        if (this.level < 3) {
+        // TODO this needs to be a constant
+        if (this.level < NUMBER_BASE_FISH_LEVELS) {
             this.foodEatenThisLevel += 1;
             if (this.foodEatenThisLevel >= this.nextUpgradeThreshold) {
                 this.upgrade();
@@ -142,13 +141,14 @@ export class Fish extends Entity {
     upgrade() {
         this.level += 1;
         this.foodEatenThisLevel = 0;
-
+        const type = (this.level === 2) ? 'SILVER' : (this.level === 3) ? 'GOLD' : 'DIAMOND';
         // console.log(`*** Fish upgraded to Level ${this.level}! ***`);
-
+        const coinData = COIN_TYPES[type.toUpperCase()] || COIN_TYPES.SILVER;
+        this.type = type.toUpperCase();
         if (this.level === 2) {
             this.canDropCoins = true;
-            this.coinDropType = 'SILVER';
-            this.coinDropValue = COIN_VALUE_LEVEL_2;
+            this.coinDropType = type;
+            this.coinDropValue = coinData.value;
             this.nextUpgradeThreshold = FISH_FOOD_TO_LEVEL_3;
             this.r *= FISH_LEVEL_RADIUS_MULTIPLIER;
             this.speed *= FISH_LEVEL_SPEED_MULTIPLIER;
@@ -156,8 +156,17 @@ export class Fish extends Entity {
             // console.log(`   Now drops coin value ${this.coinDropValue}, needs ${this.nextUpgradeThreshold} food for Lvl 3.`);
         } else if (this.level === 3) {
             this.canDropCoins = true;
-            this.coinDropType = 'GOLD';
-            this.coinDropValue = COIN_VALUE_LEVEL_3;
+            this.coinDropType = type;
+            this.coinDropValue = coinData.value;
+            this.nextUpgradeThreshold = FISH_FOOD_TO_LEVEL_4;
+            this.r *= FISH_LEVEL_RADIUS_MULTIPLIER;
+            this.speed *= FISH_LEVEL_SPEED_MULTIPLIER;
+            this.dropInterval *= FISH_LEVEL_DROP_INTERVAL_MULTIPLIER;
+            // console.log(`   Now drops coin value ${this.coinDropValue}. Max level reached.`);
+        } else if (this.level === 4) {
+            this.canDropCoins = true;
+            this.coinDropType = type;
+            this.coinDropValue = coinData.value;
             this.nextUpgradeThreshold = Infinity;
             this.r *= FISH_LEVEL_RADIUS_MULTIPLIER;
             this.speed *= FISH_LEVEL_SPEED_MULTIPLIER;

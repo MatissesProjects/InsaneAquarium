@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG Genetic Algorithm - Aquarium Deluxe</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .svg-container {
+            width: 150px;
+            height: 150px;
+            border: 1px solid #e2e8f0; /* gray-200 */
+            cursor: pointer;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            background-color: #f7fafc; /* gray-100 */
+        }
+        .svg-container.selected {
+            border-color: #4f46e5; /* indigo-600 */
+            border-width: 3px;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.5);
+        }
+        .control-panel {
+            background-color: #ffffff;
+            border-radius: 0.5rem; /* rounded-lg */
+            padding: 1.5rem; /* p-6 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        .btn {
+            padding: 0.75rem 1.5rem; 
+            border-radius: 0.375rem; 
+            font-weight: 600; 
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            cursor: pointer;
+        }
+        .btn-primary { background-color: #4f46e5; color: white; }
+        .btn-primary:hover { background-color: #4338ca; }
+        .btn-secondary { background-color: #e5e7eb; color: #374151; }
+        .btn-secondary:hover { background-color: #d1d5db; }
+        .btn-tertiary { background-color: #10b981; color: white; }
+        .btn-tertiary:hover { background-color: #059669; }
+        .btn-warning { background-color: #f59e0b; color: white; } /* Amber-500 */
+        .btn-warning:hover { background-color: #d97706; } /* Amber-600 */
+        .btn-info { background-color: #3b82f6; color: white; } 
+        .btn-info:hover { background-color: #2563eb; } 
+
+        #message-box {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background-color: #ef4444; color: white; padding: 0.75rem 1.5rem;
+            border-radius: 0.375rem; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000; opacity: 0; transition: opacity 0.5s ease-in-out;
+            pointer-events: none;
+        }
+        #message-box.show { opacity: 1; }
+        .tabs {
+            display: flex; flex-wrap: wrap; margin-bottom: 1.5rem; 
+            border-bottom: 2px solid #e5e7eb; 
+        }
+        .tab-button {
+            padding: 0.75rem 1rem; margin-right: 0.25rem; margin-bottom: 0.25rem; 
+            border: none; background-color: transparent; color: #6b7280; 
+            font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent;
+            transition: color 0.3s, border-color 0.3s; font-size: 0.875rem; 
+        }
+        .tab-button:hover { color: #374151; }
+        .tab-button.active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+
+    <div id="message-box"></div>
+
+    <div class="w-full max-w-5xl mx-auto">
+        <header class="mb-6 text-center">
+            <h1 class="text-4xl font-bold text-gray-800">SVG Genetic Algorithm</h1>
+            <p class="text-lg text-gray-600 mt-2">Select an object type, then two parents, and generate a new population!</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" data-type="fish">Fish</button>
+            <button class="tab-button" data-type="castle">Castle</button>
+            <button class="tab-button" data-type="man">Underwater Man</button>
+            <button class="tab-button" data-type="rocks">Rocks</button>
+            <button class="tab-button" data-type="chest">Treasure Chest</button>
+            <button class="tab-button" data-type="seaweed">Seaweed</button>
+        </div>
+
+        <div class="control-panel mb-8">
+            <div class="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4">
+                <button id="generateButton" class="btn btn-primary w-full sm:w-auto">Generate New Population</button>
+                <button id="prevParentsButton" class="btn btn-info w-full sm:w-auto">Use Previous Parents</button>
+                <button id="recolorButton" class="btn btn-tertiary w-full sm:w-auto">Recolor Population</button>
+                <button id="retextureButton" class="btn btn-warning w-full sm:w-auto">Retexture Population</button> <button id="resetButton" class="btn btn-secondary w-full sm:w-auto">Reset Current Tab's Population</button>
+            </div>
+            <div class="mt-6 text-center">
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">Configuration</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <label for="populationSize" class="block text-gray-600">Population Size:</label>
+                        <input type="number" id="populationSize" value="6" min="2" max="12" class="mt-1 p-2 border rounded-md w-full focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="mutationRate" class="block text-gray-600">Mutation Rate (0-1):</label>
+                        <input type="number" id="mutationRate" value="0.1" min="0" max="1" step="0.01" class="mt-1 p-2 border rounded-md w-full focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+                 <p class="text-xs text-gray-500 mt-3">Adjust settings and click 'Reset Current Tab's Population' to apply. Mutation rate applies immediately.</p>
+            </div>
+        </div>
+
+        <div id="populationContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            </div>
+    </div>
+
+    <script>
+        // --- Configuration ---
+        const SVG_WIDTH = 150;
+        const SVG_HEIGHT = 150;
+        let POPULATION_SIZE = parseInt(document.getElementById('populationSize').value) || 6;
+        let MUTATION_RATE = parseFloat(document.getElementById('mutationRate').value) || 0.1;
+        const NUM_PARENTS_REQUIRED = 2;
+        let currentObjectType = 'fish'; 
+        let globalUniqueIdCounter = 0; 
+
+        // --- DOM Elements ---
+        const populationContainer = document.getElementById('populationContainer');
+        const generateButton = document.getElementById('generateButton');
+        const prevParentsButton = document.getElementById('prevParentsButton');
+        const recolorButton = document.getElementById('recolorButton');
+        const retextureButton = document.getElementById('retextureButton'); // New button
+        const resetButton = document.getElementById('resetButton');
+        const populationSizeInput = document.getElementById('populationSize');
+        const mutationRateInput = document.getElementById('mutationRate');
+        const messageBox = document.getElementById('message-box');
+        const tabButtons = document.querySelectorAll('.tab-button');
+
+        let populations = {}; 
+        let selectedParents = [];
+        let previousSelectedParents = []; 
+
+        // --- Utility Functions ---
+        function getGlobalUniqueId(prefix = "uid") { return `${prefix}-${globalUniqueIdCounter++}`; }
+        function getRandomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+        function getRandomFloat(min, max) { return Math.random() * (max - min) + min; }
+        function getRandomColor(baseColor = null, variation = 50) {
+            if (baseColor) {
+                try {
+                    const parts = baseColor.match(/rgb\((\d+),(\d+),(\d+)\)/);
+                    if (parts) {
+                        let r = parseInt(parts[1]) + getRandomInt(-variation, variation);
+                        let g = parseInt(parts[2]) + getRandomInt(-variation, variation);
+                        let b = parseInt(parts[3]) + getRandomInt(-variation, variation);
+                        r = Math.max(0, Math.min(255, r)); g = Math.max(0, Math.min(255, g)); b = Math.max(0, Math.min(255, b));
+                        return `rgb(${r},${g},${b})`;
+                    }
+                } catch (e) { /* Fallback */ }
+            }
+            const r = getRandomInt(0, 255); const g = getRandomInt(0, 255); const b = getRandomInt(0, 255);
+            return `rgb(${r},${g},${b})`;
+        }
+        function lightenColor(rgbColor, amount) { try { const parts = rgbColor.match(/rgb\((\d+),(\d+),(\d+)\)/); if (parts) { let r = Math.min(255, parseInt(parts[1]) + amount); let g = Math.min(255, parseInt(parts[2]) + amount); let b = Math.min(255, parseInt(parts[3]) + amount); return `rgb(${r},${g},${b})`; } } catch(e) { return rgbColor; } return rgbColor; }
+        function darkenColor(rgbColor, amount) { try { const parts = rgbColor.match(/rgb\((\d+),(\d+),(\d+)\)/); if (parts) { let r = Math.max(0, parseInt(parts[1]) - amount); let g = Math.max(0, parseInt(parts[2]) - amount); let b = Math.max(0, parseInt(parts[3]) - amount); return `rgb(${r},${g},${b})`; } } catch(e) { return rgbColor; } return rgbColor; }
+        function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
+        function showMessage(message, duration = 3000) { messageBox.textContent = message; messageBox.classList.add('show'); setTimeout(() => { messageBox.classList.remove('show'); }, duration); }
+        function createDefsIfNeeded(svgElement) { let defs = svgElement.querySelector('defs'); if (!defs) { defs = document.createElementNS("http://www.w3.org/2000/svg", "defs"); svgElement.insertBefore(defs, svgElement.firstChild); } return defs; }
+
+        // === FISH ===
+        function createRandomFishBody(idPrefix) { 
+            const bodyColor = getRandomColor(null, 70);
+            const gradId = `${idPrefix}-bodyGrad-${getGlobalUniqueId('grad')}`;
+            const patternTypes = ['none', 'scales', 'stripes', 'spots'];
+            const patternType = patternTypes[getRandomInt(0, patternTypes.length - 1)];
+            return { 
+                type: 'ellipse', cx: SVG_WIDTH / 2, cy: SVG_HEIGHT / 2, 
+                rx: getRandomInt(SVG_WIDTH / 5, SVG_WIDTH / 2.5), 
+                ry: getRandomInt(SVG_HEIGHT / 6, SVG_HEIGHT / 3.5), 
+                fill: `url(#${gradId})`, baseFill: bodyColor, gradId: gradId,
+                stroke: darkenColor(bodyColor, 50), 'stroke-width': getRandomInt(1, 2),
+                patternType: patternType, 
+                patternId: patternType !== 'none' ? `${idPrefix}-${patternType}Pattern-${getGlobalUniqueId('pat')}` : null
+            };
+        }
+        function createRandomFishEye(body) { const eyeRadius = getRandomInt(Math.max(2, body.ry / 12), Math.max(5, body.ry / 4)); return { type: 'eye', cx: body.cx + body.rx * getRandomFloat(0.45, 0.75) - eyeRadius, cy: body.cy - body.ry * getRandomFloat(0.05, 0.45), r: eyeRadius, fill: 'white', pupilFill: 'black', pupilR: Math.max(1, eyeRadius * getRandomFloat(0.25, 0.65)) }; }
+        function createRandomFishFin(body, idPrefix, finType) { const finColor = getRandomColor(body.baseFill, 60); const gradId = `${idPrefix}-${finType}Grad-${getGlobalUniqueId('grad')}`; let points; const baseX = body.cx + (finType === 'tail' ? -body.rx * getRandomFloat(0.8, 1.0) : body.cx * getRandomFloat(-0.1, 0.1) ); const baseY = body.cy + (finType === 'dorsal' ? -body.ry * getRandomFloat(0.8, 1.0) : (finType === 'ventral' ? body.ry * getRandomFloat(0.7, 0.9) : 0)); const length = body.rx * getRandomFloat(0.25, (finType === 'tail' ? 0.75 : 0.5)); const spread = body.ry * getRandomFloat(0.5, (finType === 'tail' ? 2.0 : 1.0)); if (finType === 'tail') { const p1X = baseX - length * getRandomFloat(0.8, 1.2); const p1Y = baseY - spread / 2 * getRandomFloat(0.8, 1.2); const p2X = baseX - length * getRandomFloat(0.8, 1.2); const p2Y = baseY + spread / 2 * getRandomFloat(0.8, 1.2); const cX = baseX - length * getRandomFloat(0.3, 0.7); const cY = baseY; points = `${baseX},${baseY} ${p1X},${p1Y} ${cX},${cY} ${p2X},${p2Y}`; } else {  const midX = body.cx + body.rx * getRandomFloat(finType === 'dorsal' ? -0.4 : -0.25, finType === 'dorsal' ? 0.4 : 0.25); const height = body.ry * getRandomFloat(0.3, (finType === 'dorsal' ? 1.0 : 0.75)); const baseWidth = body.rx * getRandomFloat(0.25, (finType === 'dorsal' ? 0.65 : 0.55)); const peakSkew = getRandomFloat(-baseWidth/3, baseWidth/3); const finBaseY = finType === 'dorsal' ? (body.cy - body.ry * getRandomFloat(0.8, 1.0)) : (body.cy + body.ry * getRandomFloat(0.7, 0.9)); points = `${midX - baseWidth / 2},${finBaseY} ${midX + baseWidth / 2},${finBaseY} ${midX + peakSkew},${finBaseY + (finType === 'dorsal' ? -height : height)}`; } return { type: 'polygon', points: points, fill: `url(#${gradId})`, baseFill: finColor, gradId: gradId, stroke: darkenColor(finColor, 40), 'stroke-width': 1 }; }
+        function createInitialFishData() { const id = getGlobalUniqueId('fish'); const body = createRandomFishBody(id); return { id: id, type: 'fish', parts: { body: body, eye: createRandomFishEye(body), tail: createRandomFishFin(body, id, 'tail'), dorsalFin: createRandomFishFin(body, id, 'dorsal'), ventralFin: createRandomFishFin(body, id, 'ventral') }}; }
+        function mutateFish(fishData, onlyRecolor = false, onlyRetexture = false) {
+            const parts = fishData.parts;
+            const id = fishData.id;
+            
+            if (!onlyRecolor && !onlyRetexture && parts.body) { // Full mutation
+                if (Math.random() < MUTATION_RATE) {
+                    parts.body.rx = Math.max(10, parts.body.rx + getRandomInt(-8, 8)); 
+                    parts.body.ry = Math.max(8, parts.body.ry + getRandomInt(-8, 8)); 
+                }
+            }
+            
+            if (parts.body) {
+                if (onlyRetexture || (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE * 0.3)) { // Mutate pattern type
+                    const patternTypes = ['none', 'scales', 'stripes', 'spots'];
+                    let newPatternType = patternTypes[getRandomInt(0, patternTypes.length - 1)];
+                    if (newPatternType === parts.body.patternType && patternTypes.length > 1) {
+                        newPatternType = patternTypes[(patternTypes.indexOf(newPatternType) + 1) % patternTypes.length];
+                    }
+                    parts.body.patternType = newPatternType;
+                    parts.body.patternId = newPatternType !== 'none' ? `${id}-${newPatternType}Pattern-${getGlobalUniqueId('pat')}` : null;
+                }
+
+                if (onlyRecolor || (!onlyRetexture && Math.random() < MUTATION_RATE)) { // Color mutation
+                    parts.body.baseFill = getRandomColor(parts.body.baseFill, 40);
+                    parts.body.gradId = `${id}-bodyGrad-${getGlobalUniqueId('grad')}`; 
+                    parts.body.fill = `url(#${parts.body.gradId})`;
+                    parts.body.stroke = darkenColor(parts.body.baseFill, 50);
+                    if (parts.body.patternType !== 'none' && parts.body.patternId) { // Ensure pattern ID is fresh if color changed
+                        parts.body.patternId = `${id}-${parts.body.patternType}Pattern-${getGlobalUniqueId('pat')}`;
+                    }
+                }
+            }
+
+
+            if (!onlyRecolor && !onlyRetexture && parts.eye && Math.random() < MUTATION_RATE) { /* Eye shape/pos mutation */ }
+            if (parts.eye && (onlyRecolor || (!onlyRetexture && Math.random() < MUTATION_RATE * 0.5))) {
+                 parts.eye.pupilFill = getRandomColor(parts.eye.pupilFill, 30);
+            }
+
+            ['tail', 'dorsalFin', 'ventralFin'].forEach(finName => { 
+                if (parts[finName]) { 
+                    if (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE) { 
+                        let newFin; 
+                        if (finName === 'tail') newFin = createRandomFishFin(parts.body, id, 'tail'); 
+                        else if (finName === 'dorsalFin') newFin = createRandomFishFin(parts.body, id, 'dorsal'); 
+                        else newFin = createRandomFishFin(parts.body, id, 'ventral'); 
+                        parts[finName].points = newFin.points; 
+                    } 
+                    if (onlyRecolor || (!onlyRetexture && Math.random() < MUTATION_RATE * 1.5)) { 
+                        parts[finName].baseFill = getRandomColor(parts[finName].baseFill, 40); 
+                        parts[finName].gradId = `${id}-${finName}Grad-${getGlobalUniqueId('grad')}`; 
+                        parts[finName].fill = `url(#${parts[finName].gradId})`; 
+                        parts[finName].stroke = darkenColor(parts[finName].baseFill, 40); 
+                    } 
+                }
+            });
+        }
+        function renderFish(fishData, svgElement) { /* ... (implementation as in previous version) ... */ 
+            const defs = createDefsIfNeeded(svgElement); const { parts } = fishData;
+            if (parts.body.patternType && parts.body.patternType !== 'none' && parts.body.patternId) { let pattern = defs.querySelector(`#${parts.body.patternId}`); if (pattern) defs.removeChild(pattern); pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern"); pattern.setAttribute('id', parts.body.patternId); pattern.setAttribute('patternUnits', 'userSpaceOnUse'); const patternColor = lightenColor(parts.body.baseFill, 25); if (parts.body.patternType === 'scales') { pattern.setAttribute('width', '8'); pattern.setAttribute('height', '8'); const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle"); circle.setAttribute('cx','2'); circle.setAttribute('cy','2'); circle.setAttribute('r','1.5'); circle.setAttribute('fill', patternColor); circle.setAttribute('fill-opacity', '0.6'); pattern.appendChild(circle); } else if (parts.body.patternType === 'stripes') { pattern.setAttribute('width', '10'); pattern.setAttribute('height', '10'); const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect"); rect.setAttribute('x','0'); rect.setAttribute('y','0'); rect.setAttribute('width','3'); rect.setAttribute('height','10'); rect.setAttribute('fill', patternColor); rect.setAttribute('fill-opacity', '0.5'); pattern.appendChild(rect); } else if (parts.body.patternType === 'spots') { pattern.setAttribute('width', '12'); pattern.setAttribute('height', '12'); const spot = document.createElementNS("http://www.w3.org/2000/svg", "circle"); spot.setAttribute('cx','5'); spot.setAttribute('cy','5'); spot.setAttribute('r','2.5'); spot.setAttribute('fill', patternColor); spot.setAttribute('fill-opacity', '0.5'); pattern.appendChild(spot); } defs.appendChild(pattern); }
+            [parts.body, parts.tail, parts.dorsalFin, parts.ventralFin].forEach(part => { if (part && part.gradId) { let grad = defs.querySelector(`#${part.gradId}`); if(grad) defs.removeChild(grad); grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient"); grad.setAttribute("id", part.gradId); grad.setAttribute("x1", "0%"); grad.setAttribute("y1", "0%"); grad.setAttribute("x2", "0%"); grad.setAttribute("y2", "100%"); const stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop"); stop1.setAttribute("offset", "0%"); stop1.setAttribute("stop-color", lightenColor(part.baseFill, 30)); const stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop"); stop2.setAttribute("offset", "100%"); stop2.setAttribute("stop-color", darkenColor(part.baseFill, 30)); grad.appendChild(stop1); grad.appendChild(stop2); defs.appendChild(grad); } });
+            const renderOrder = ['tail', 'dorsalFin', 'ventralFin', 'body', 'eye'];
+            renderOrder.forEach(partName => { const partData = parts[partName]; if (!partData) return; if (partName === 'eye') { const eyeGroup = document.createElementNS("http://www.w3.org/2000/svg", "g"); const eyeWhiteEl = document.createElementNS("http://www.w3.org/2000/svg", "circle"); eyeWhiteEl.setAttribute("cx", partData.cx); eyeWhiteEl.setAttribute("cy", partData.cy); eyeWhiteEl.setAttribute("r", partData.r); eyeWhiteEl.setAttribute("fill", partData.fill); eyeWhiteEl.setAttribute("stroke", "rgba(0,0,0,0.1)"); eyeWhiteEl.setAttribute("stroke-width", "0.5"); eyeGroup.appendChild(eyeWhiteEl); const pupilEl = document.createElementNS("http://www.w3.org/2000/svg", "circle"); pupilEl.setAttribute("cx", partData.cx + getRandomFloat(-partData.pupilR*0.1, partData.pupilR*0.1)); pupilEl.setAttribute("cy", partData.cy + getRandomFloat(-partData.pupilR*0.1, partData.pupilR*0.1)); pupilEl.setAttribute("r", partData.pupilR); pupilEl.setAttribute("fill", partData.pupilFill); eyeGroup.appendChild(pupilEl); svgElement.appendChild(eyeGroup); } else if (partData.type) { const el = document.createElementNS("http://www.w3.org/2000/svg", partData.type); for (const attr in partData) { if (attr !== 'type' && attr !== 'baseFill' && attr !== 'gradId' && attr !== 'patternType' && attr !== 'patternId') { el.setAttribute(attr, partData[attr]); } } if (partName === 'body' && partData.patternType && partData.patternType !== 'none' && partData.patternId) { const baseBodyEl = document.createElementNS("http://www.w3.org/2000/svg", "ellipse"); baseBodyEl.setAttribute('cx', partData.cx); baseBodyEl.setAttribute('cy', partData.cy); baseBodyEl.setAttribute('rx', partData.rx); baseBodyEl.setAttribute('ry', partData.ry); baseBodyEl.setAttribute('fill', `url(#${partData.gradId})`); baseBodyEl.setAttribute('stroke', partData.stroke); baseBodyEl.setAttribute('stroke-width', partData['stroke-width']); svgElement.appendChild(baseBodyEl); el.setAttribute('fill', `url(#${partData.patternId})`); el.removeAttribute('stroke'); el.removeAttribute('stroke-width'); } svgElement.appendChild(el); } });
+        }
+
+        // === CASTLE ===
+        function createCrenellations(wallPart, wallColor) { const crenellations = []; const crenWidth = Math.max(5, wallPart.width / getRandomInt(5, 10)); const crenHeight = Math.max(5, wallPart.height * getRandomFloat(0.1, 0.2)); const numCrens = Math.floor(wallPart.width / (crenWidth * 1.5)); for (let i = 0; i < numCrens; i++) { crenellations.push({ type: 'rect', x: wallPart.x + i * (wallPart.width / numCrens) + crenWidth * 0.25, y: wallPart.y - crenHeight, width: crenWidth, height: crenHeight, fill: wallColor, stroke: darkenColor(wallColor,30), 'stroke-width': 0.5 }); } return crenellations; }
+        function createInitialCastleData() {
+            const id = getGlobalUniqueId('castle');
+            const baseWallColor = getRandomColor('rgb(150,150,140)', 30); 
+            const baseRoofColor = getRandomColor('rgb(100,70,70)', 40); 
+            const parts = {};
+            const mainWallWidth = getRandomInt(SVG_WIDTH * 0.35, SVG_WIDTH * 0.75);
+            const mainWallHeight = getRandomInt(SVG_HEIGHT * 0.25, SVG_HEIGHT * 0.65);
+            const mainWallX = (SVG_WIDTH - mainWallWidth) / 2;
+            const mainWallY = SVG_HEIGHT - mainWallHeight - getRandomInt(5, SVG_HEIGHT * 0.1);
+            
+            const hasTexture = Math.random() < 0.5;
+            const textureId = hasTexture ? `${id}-wallTexture-${getGlobalUniqueId('pat')}` : null;
+
+            parts.mainWall = { 
+                type: 'rect', x: mainWallX, y: mainWallY, width: mainWallWidth, height: mainWallHeight, 
+                fill: hasTexture && textureId ? `url(#${textureId})` : baseWallColor, 
+                baseFill: baseWallColor, 
+                stroke: darkenColor(baseWallColor,40), 'stroke-width': 1,
+                hasTexture: hasTexture, textureId: textureId
+            };
+            const towerWidth = mainWallWidth * getRandomFloat(0.2, 0.45); const towerHeight = mainWallHeight * getRandomFloat(0.7, 1.4); if (Math.random() < 0.8) { const ltX = mainWallX - towerWidth * getRandomFloat(0.6, 0.8); const ltY = mainWallY - towerHeight * getRandomFloat(0.1, 0.3); parts.leftTower = { type: 'rect', x: ltX, y: ltY, width: towerWidth, height: towerHeight, fill: baseWallColor, stroke: darkenColor(baseWallColor,40), 'stroke-width': 1 }; parts.leftTowerRoof = { type: 'polygon', points: `${ltX},${ltY} ${ltX + towerWidth},${ltY} ${ltX + towerWidth/2 + getRandomInt(-towerWidth/4, towerWidth/4)},${ltY - towerHeight * getRandomFloat(0.2, 0.4)}`, fill: baseRoofColor, stroke: darkenColor(baseRoofColor,30), 'stroke-width': 1 }; if (Math.random() < 0.6) createCrenellations(parts.leftTower, baseWallColor).forEach((c, i) => parts[`leftTowerCren${i}`] = c); if (Math.random() < 0.5) parts.leftTowerFlag = { type: 'polygon', points: `${ltX + towerWidth/2},${ltY - towerHeight*0.3 - 10} ${ltX + towerWidth/2},${ltY - towerHeight*0.3 - 2} ${ltX + towerWidth/2 + 8},${ltY - towerHeight*0.3 - 6}`, fill: getRandomColor('rgb(200,50,50)',20), stroke:'black', 'stroke-width':0.5 }; } if (Math.random() < 0.8) { const rtX = mainWallX + mainWallWidth - towerWidth * getRandomFloat(0.2, 0.4); const rtY = mainWallY - towerHeight * getRandomFloat(0.1, 0.3); parts.rightTower = { type: 'rect', x: rtX, y: rtY, width: towerWidth, height: towerHeight, fill: baseWallColor, stroke: darkenColor(baseWallColor,40), 'stroke-width': 1 }; parts.rightTowerRoof = { type: 'polygon', points: `${rtX},${rtY} ${rtX + towerWidth},${rtY} ${rtX + towerWidth/2 + getRandomInt(-towerWidth/4, towerWidth/4)},${rtY - towerHeight * getRandomFloat(0.2, 0.4)}`, fill: baseRoofColor, stroke: darkenColor(baseRoofColor,30), 'stroke-width': 1 }; if (Math.random() < 0.6) createCrenellations(parts.rightTower, baseWallColor).forEach((c, i) => parts[`rightTowerCren${i}`] = c); if (Math.random() < 0.5) parts.rightTowerFlag = { type: 'polygon', points: `${rtX + towerWidth/2},${rtY - towerHeight*0.3 - 10} ${rtX + towerWidth/2},${rtY - towerHeight*0.3 - 2} ${rtX + towerWidth/2 + 8},${rtY - towerHeight*0.3 - 6}`, fill: getRandomColor('rgb(50,50,200)',20), stroke:'black', 'stroke-width':0.5 }; } if (Math.random() < 0.7) createCrenellations(parts.mainWall, baseWallColor).forEach((c, i) => parts[`mainWallCren${i}`] = c); if (Math.random() < 0.7) parts.mainWallWindow = {type: 'rect', x: mainWallX + mainWallWidth/2 - 5, y: mainWallY + mainWallHeight/3, width:10, height:12, fill: 'rgb(50,50,80)', stroke:'black', 'stroke-width':0.5}; if (parts.leftTower && Math.random() < 0.6) parts.leftTowerWindow = {type: 'rect', x: parts.leftTower.x + towerWidth/2 - 4, y: parts.leftTower.y + towerHeight/3, width:8, height:10, fill: 'rgb(50,50,80)', stroke:'black', 'stroke-width':0.5}; if (parts.rightTower && Math.random() < 0.6) parts.rightTowerWindow = {type: 'rect', x: parts.rightTower.x + towerWidth/2 - 4, y: parts.rightTower.y + towerHeight/3, width:8, height:10, fill: 'rgb(50,50,80)', stroke:'black', 'stroke-width':0.5};
+            return { id: id, type: 'castle', parts: parts };
+        }
+        function mutateCastle(castleData, onlyRecolor = false, onlyRetexture = false) {
+            const parts = castleData.parts;
+            const id = castleData.id;
+
+            if (parts.mainWall) {
+                if (onlyRetexture || (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE * 0.2)) { // Mutate texture presence
+                    parts.mainWall.hasTexture = !parts.mainWall.hasTexture;
+                    parts.mainWall.textureId = parts.mainWall.hasTexture ? `${id}-wallTexture-${getGlobalUniqueId('pat')}` : null;
+                    // Update fill based on new texture state
+                    if (parts.mainWall.hasTexture && parts.mainWall.textureId) {
+                        parts.mainWall.fill = `url(#${parts.mainWall.textureId})`;
+                    } else {
+                        parts.mainWall.fill = parts.mainWall.baseFill;
+                    }
+                }
+            }
+            
+            for (const partName in parts) {
+                const part = parts[partName];
+                if (onlyRecolor || (!onlyRetexture && Math.random() < MUTATION_RATE)) { // Color mutation
+                    if (part.fill && !partName.includes('Window')) {
+                        part.baseFill = part.baseFill ? getRandomColor(part.baseFill, 30) : getRandomColor(part.fill, 30);
+                        if (part.textureId && partName === 'mainWall' && part.hasTexture) {
+                            part.textureId = `${id}-wallTexture-${getGlobalUniqueId('pat')}`;
+                            part.fill = `url(#${part.textureId})`;
+                        } else {
+                             part.fill = part.baseFill || part.fill; // Fallback to existing fill if baseFill is somehow undefined
+                        }
+                    }
+                    if (part.stroke && !partName.includes('Window')) { 
+                        part.stroke = darkenColor(part.baseFill || part.fill, 30); 
+                    }
+                }
+                if (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE) { // Shape/Pos mutation
+                    if (part.type === 'rect' && !partName.includes('Cren') && !partName.includes('Window')) { part.width = Math.max(5, part.width + getRandomInt(-8, 8)); part.height = Math.max(5, part.height + getRandomInt(-8, 8)); part.x += getRandomInt(-4, 4); part.y += getRandomInt(-4, 4); } 
+                    else if (part.type === 'polygon' && !partName.includes('Flag')) { const points = part.points.split(' ').map(p => p.split(',').map(Number)); const newPoints = points.map(coord => [coord[0] + getRandomInt(-6,6), coord[1] + getRandomInt(-6,6)]).map(p => p.join(',')).join(' '); part.points = newPoints; }
+                }
+            }
+        }
+        function renderCastle(castleData, svgElement) { /* ... (implementation as in previous version) ... */ 
+            const defs = createDefsIfNeeded(svgElement); const { parts } = castleData;
+            if (parts.mainWall && parts.mainWall.hasTexture && parts.mainWall.textureId) { let pattern = defs.querySelector(`#${parts.mainWall.textureId}`); if (pattern) defs.removeChild(pattern); pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern"); pattern.setAttribute('id', parts.mainWall.textureId); pattern.setAttribute('width', '10'); pattern.setAttribute('height', '10'); pattern.setAttribute('patternUnits', 'userSpaceOnUse'); const bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect"); bgRect.setAttribute('width', '10'); bgRect.setAttribute('height', '10'); bgRect.setAttribute('fill', parts.mainWall.baseFill); pattern.appendChild(bgRect); const line1 = document.createElementNS("http://www.w3.org/2000/svg", "line"); line1.setAttribute('x1','0'); line1.setAttribute('y1','5'); line1.setAttribute('x2','10'); line1.setAttribute('y2','5'); line1.setAttribute('stroke', darkenColor(parts.mainWall.baseFill, 20)); line1.setAttribute('stroke-width','0.5'); pattern.appendChild(line1); const line2 = document.createElementNS("http://www.w3.org/2000/svg", "line"); line2.setAttribute('x1','5'); line2.setAttribute('y1','0'); line2.setAttribute('x2','5'); line2.setAttribute('y2','5'); line2.setAttribute('stroke', darkenColor(parts.mainWall.baseFill, 20)); line2.setAttribute('stroke-width','0.5'); pattern.appendChild(line2); defs.appendChild(pattern); }
+            const renderOrder = Object.keys(parts).sort((a,b) => { if (a.includes('Wall') && !a.includes('Window') && !b.includes('Wall')) return -1; if (b.includes('Wall') && !b.includes('Window') && !a.includes('Wall')) return 1; if (a.includes('Tower') && !a.includes('Roof') && !a.includes('Window') && !b.includes('Tower')) return -1; if (b.includes('Tower') && !b.includes('Roof') && !b.includes('Window') && !a.includes('Tower')) return 1; if (a.includes('Window') && !b.includes('Window')) return 1;  if (b.includes('Window') && !a.includes('Window')) return -1; if (a.includes('Roof') && !b.includes('Roof')) return 1;  if (b.includes('Roof') && !a.includes('Roof')) return -1; if (a.includes('Cren') && !b.includes('Cren')) return 1; if (b.includes('Cren') && !a.includes('Cren')) return -1; if (a.includes('Flag') && !b.includes('Flag')) return 1;  if (b.includes('Flag') && !a.includes('Flag')) return -1; if (a === 'door') return 1; if (b === 'door') return -1; return 0; }); renderOrder.forEach(partName => { const partData = parts[partName]; if (partData && partData.type) { const el = document.createElementNS("http://www.w3.org/2000/svg", partData.type); for (const attr in partData) { if (attr !== 'type' && attr !== 'baseFill' && attr !== 'hasTexture' && attr !== 'textureId') el.setAttribute(attr, partData[attr]); } svgElement.appendChild(el); } });
+        }
+        
+        // === ROCKS ===
+        function createSingleRockPolygon(centerX, centerY, avgRadius, colorBase, idPrefix) { /* ... (implementation as in previous version) ... */ 
+            const baseColor = getRandomColor(colorBase || 'rgb(120,120,120)', 40); const gradId = `${idPrefix}-rockGrad-${getGlobalUniqueId('grad')}`; const hasMoss = Math.random() < 0.3; const mossPatches = []; if (hasMoss) { const numMoss = getRandomInt(1,3); for(let i=0; i<numMoss; i++) { const mossRadius = avgRadius * getRandomFloat(0.1, 0.3); const mossX = centerX + getRandomFloat(-avgRadius*0.4, avgRadius*0.4); const mossY = centerY - avgRadius*0.3 + getRandomFloat(-avgRadius*0.2, avgRadius*0.2); mossPatches.push(createSingleRockPolygon(mossX, mossY, mossRadius, 'rgb(60,100,60)', `${idPrefix}-moss${i}`)); } } const numPoints = getRandomInt(5, 10); const points = []; for (let i = 0; i < numPoints; i++) { const angle = (i / numPoints) * Math.PI * 2; const radius = avgRadius * getRandomFloat(0.7, 1.3); const x = centerX + radius * Math.cos(angle) + getRandomInt(-avgRadius*0.1, avgRadius*0.1); const y = centerY + radius * Math.sin(angle) + getRandomInt(-avgRadius*0.1, avgRadius*0.1); points.push(`${Math.max(0,Math.min(SVG_WIDTH, x))},${Math.max(0,Math.min(SVG_HEIGHT, y))}`); } return { type: 'polygon', points: points.join(' '), fill: `url(#${gradId})`, baseFill: baseColor, gradId: gradId, stroke: darkenColor(baseColor, 30), 'stroke-width': getRandomFloat(0.5, 2), hasMoss: hasMoss, mossPatches: mossPatches };
+        }
+        function createInitialRockData() { /* ... (implementation as in previous version) ... */ 
+            const id = getGlobalUniqueId('rocks'); const parts = {}; const numRocks = getRandomInt(1, 3); const baseRockColor = `rgb(${getRandomInt(100,160)},${getRandomInt(100,160)},${getRandomInt(100,160)})`; for (let i = 0; i < numRocks; i++) { const rockRadius = SVG_WIDTH / getRandomInt(4, 10); const rockCenterX = SVG_WIDTH / 2 + getRandomInt(-SVG_WIDTH * 0.25, SVG_WIDTH * 0.25) * (i > 0 ? Math.random() : 0); const rockCenterY = SVG_HEIGHT * 0.85 - rockRadius*0.5 - getRandomInt(0, SVG_HEIGHT * 0.1) * i; parts[`rock${i}`] = createSingleRockPolygon(rockCenterX, rockCenterY, rockRadius, baseRockColor, `${id}-rock${i}`); } return { id: id, type: 'rocks', numRocks: numRocks, parts: parts };
+        }
+        function mutateRock(rockData, onlyRecolor = false, onlyRetexture = false) { /* ... (implementation as in previous version, respecting flags) ... */ 
+            const parts = rockData.parts; const id = rockData.id;
+            for (const partName in parts) {
+                if (partName.startsWith('rock')) {
+                    const rockPart = parts[partName];
+                    if (onlyRecolor || (!onlyRetexture && Math.random() < MUTATION_RATE)) { 
+                        rockPart.baseFill = getRandomColor(rockPart.baseFill, 30);
+                        rockPart.gradId = `${id}-${partName}Grad-${getGlobalUniqueId('grad')}`;
+                        rockPart.fill = `url(#${rockPart.gradId})`;
+                        rockPart.stroke = darkenColor(rockPart.baseFill, 20);
+                        if (rockPart.mossPatches) { rockPart.mossPatches.forEach(moss => { moss.baseFill = getRandomColor('rgb(60,100,60)', 20); moss.gradId = `${id}-${partName}-mossGrad-${getGlobalUniqueId('grad')}`; moss.fill = `url(#${moss.gradId})`; moss.stroke = darkenColor(moss.baseFill, 15); });}
+                    }
+                    if (onlyRetexture || (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE * 0.2)) {
+                        rockPart.hasMoss = !rockPart.hasMoss;
+                        if (rockPart.hasMoss && (!rockPart.mossPatches || rockPart.mossPatches.length === 0)) { const avgRadius = (parseFloat(rockPart.points.split(' ')[0].split(',')[0]) - parseFloat(rockPart.points.split(' ')[2].split(',')[0])) || 20; const centerX = parseFloat(rockPart.points.split(' ')[0].split(',')[0]); const centerY = parseFloat(rockPart.points.split(' ')[0].split(',')[1]); rockPart.mossPatches = [createSingleRockPolygon(centerX, centerY, avgRadius*0.2, 'rgb(60,100,60)', `${id}-${partName}-mossNew`)]; } 
+                        else if (!rockPart.hasMoss) { rockPart.mossPatches = []; }
+                    }
+                    if (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE * 1.5) { /* point mutation */ }
+                }
+            }
+            if (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE * 0.3) { /* add/remove rock */ }
+        }
+        function renderRock(rockData, svgElement) { /* ... (implementation as in previous version) ... */ 
+            const defs = createDefsIfNeeded(svgElement); const { parts } = rockData;
+            Object.keys(parts).sort().forEach(partName => { if (partName.startsWith('rock')) { const rockPart = parts[partName]; if (rockPart && rockPart.gradId) { let grad = defs.querySelector(`#${rockPart.gradId}`); if(grad) defs.removeChild(grad); grad = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient"); grad.setAttribute("id", rockPart.gradId); grad.setAttribute("x1", "0%"); grad.setAttribute("y1", "0%"); grad.setAttribute("x2", getRandomInt(0,50)+"%"); grad.setAttribute("y2", getRandomInt(50,100)+"%"); const stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop"); stop1.setAttribute("offset", "0%"); stop1.setAttribute("stop-color", lightenColor(rockPart.baseFill, 20)); const stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop"); stop2.setAttribute("offset", "100%"); stop2.setAttribute("stop-color", darkenColor(rockPart.baseFill, 20)); grad.appendChild(stop1); grad.appendChild(stop2); defs.appendChild(grad); } if (rockPart && rockPart.type) { const el = document.createElementNS("http://www.w3.org/2000/svg", rockPart.type); for (const attr in rockPart) { if (attr !== 'type' && attr !== 'baseFill' && attr !== 'gradId' && attr !== 'hasMoss' && attr !== 'mossPatches') el.setAttribute(attr, rockPart[attr]); } svgElement.appendChild(el); } if (rockPart.hasMoss && rockPart.mossPatches) { rockPart.mossPatches.forEach(moss => { if (moss.gradId) { let mossGrad = defs.querySelector(`#${moss.gradId}`); if(mossGrad) defs.removeChild(mossGrad); mossGrad = document.createElementNS("http://www.w3.org/2000/svg", "radialGradient"); mossGrad.setAttribute("id", moss.gradId); const stopM1 = document.createElementNS("http://www.w3.org/2000/svg", "stop"); stopM1.setAttribute("offset", "0%"); stopM1.setAttribute("stop-color", lightenColor(moss.baseFill, 15)); const stopM2 = document.createElementNS("http://www.w3.org/2000/svg", "stop"); stopM2.setAttribute("offset", "100%"); stopM2.setAttribute("stop-color", moss.baseFill); mossGrad.appendChild(stopM1); mossGrad.appendChild(stopM2); defs.appendChild(mossGrad); } const mossEl = document.createElementNS("http://www.w3.org/2000/svg", moss.type); for (const attr in moss) { if (attr !== 'type' && attr !== 'baseFill' && attr !== 'gradId' && attr !== 'hasMoss' && attr !== 'mossPatches') mossEl.setAttribute(attr, moss[attr]); } svgElement.appendChild(mossEl); }); } } });
+        }
+
+        // === OTHER TYPES (Man, Chest, Seaweed) ===
+        function createInitialManData() { /* ... as before ... */ const id = getGlobalUniqueId('man'); const headColor = getRandomColor('rgb(255,224,189)', 30); const suitColor = getRandomColor('rgb(40,80,120)', 40); const helmetColor = getRandomColor('rgba(180,220,255,0.3)', 20); const bodyWidth = SVG_WIDTH/getRandomInt(7,11); const bodyHeight = SVG_HEIGHT/getRandomInt(3.5,5.5); const bodyX = SVG_WIDTH/2 - bodyWidth/2; const bodyY = SVG_HEIGHT/2 - bodyHeight/3; const headRadius = bodyWidth * getRandomFloat(0.5, 0.8); const limbWidth = bodyWidth*0.25; const parts = { helmet: { type: 'circle', cx: SVG_WIDTH/2, cy: bodyY - headRadius*0.7, r: headRadius * 1.4, fill: helmetColor, stroke: 'rgba(200,230,255,0.6)', 'stroke-width': 1.5}, head: { type: 'circle', cx: SVG_WIDTH/2, cy: bodyY - headRadius*0.7, r: headRadius, fill: headColor }, body: { type: 'rect', x: bodyX, y: bodyY, width: bodyWidth, height: bodyHeight, fill: suitColor, rx:5, ry:5 }, leftArmPath: `M ${bodyX},${bodyY + bodyHeight*0.2} Q ${bodyX - bodyWidth*0.8},${bodyY + bodyHeight*0.5} ${bodyX - bodyWidth*getRandomFloat(0.6,1.2)},${bodyY + bodyHeight*getRandomFloat(0.3,0.6)}`, rightArmPath: `M ${bodyX + bodyWidth},${bodyY + bodyHeight*0.2} Q ${bodyX + bodyWidth*1.8},${bodyY + bodyHeight*0.5} ${bodyX + bodyWidth + bodyWidth*getRandomFloat(0.6,1.2)},${bodyY + bodyHeight*getRandomFloat(0.3,0.6)}`, leftLegPath: `M ${bodyX + bodyWidth*0.25},${bodyY + bodyHeight} Q ${bodyX + bodyWidth*0.1},${bodyY + bodyHeight*1.3} ${bodyX + bodyWidth*0.25 - bodyWidth*getRandomFloat(0.1,0.4)},${bodyY + bodyHeight + bodyHeight*getRandomFloat(0.4,0.7)}`, rightLegPath: `M ${bodyX + bodyWidth*0.75},${bodyY + bodyHeight} Q ${bodyX + bodyWidth*0.9},${bodyY + bodyHeight*1.3} ${bodyX + bodyWidth*0.75 + bodyWidth*getRandomFloat(0.1,0.4)},${bodyY + bodyHeight + bodyHeight*getRandomFloat(0.4,0.7)}`, }; parts.leftArm = {type: 'path', d: parts.leftArmPath, stroke: suitColor, 'stroke-width': limbWidth, fill:'none', 'stroke-linecap':'round'}; parts.rightArm = {type: 'path', d: parts.rightArmPath, stroke: suitColor, 'stroke-width': limbWidth, fill:'none', 'stroke-linecap':'round'}; parts.leftLeg = {type: 'path', d: parts.leftLegPath, stroke: suitColor, 'stroke-width': limbWidth*1.1, fill:'none', 'stroke-linecap':'round'}; parts.rightLeg = {type: 'path', d: parts.rightLegPath, stroke: suitColor, 'stroke-width': limbWidth*1.1, fill:'none', 'stroke-linecap':'round'}; const leftHandCoords = parts.leftArmPath.split(' ').pop().split(','); parts.leftHand = {type: 'circle', cx: parseFloat(leftHandCoords[0]), cy: parseFloat(leftHandCoords[1]), r: limbWidth*0.6, fill: suitColor}; const rightHandCoords = parts.rightArmPath.split(' ').pop().split(','); parts.rightHand = {type: 'circle', cx: parseFloat(rightHandCoords[0]), cy: parseFloat(rightHandCoords[1]), r: limbWidth*0.6, fill: suitColor}; return { id: id, type: 'man', parts: parts }; }
+        function mutateMan(manData, onlyRecolor = false, onlyRetexture = false) { /* ... as before ... */ const parts = manData.parts; if (onlyRecolor || (!onlyRetexture && parts.head && Math.random() < MUTATION_RATE)) { parts.head.fill = getRandomColor(parts.head.fill, 20); if (parts.helmet) parts.helmet.fill = getRandomColor(parts.helmet.fill, 15); } if (onlyRecolor || (!onlyRetexture && parts.body && Math.random() < MUTATION_RATE)) { parts.body.fill = getRandomColor(parts.body.fill, 30); const newSuitColor = parts.body.fill; ['leftArm', 'rightArm', 'leftLeg', 'rightLeg', 'leftHand', 'rightHand'].forEach(limbName => { if(parts[limbName]) parts[limbName].stroke = newSuitColor; if(parts[limbName] && parts[limbName].fill) parts[limbName].fill = newSuitColor; }); } if (!onlyRecolor && !onlyRetexture) { if (parts.head && Math.random() < MUTATION_RATE) parts.head.r = Math.max(5, parts.head.r + getRandomInt(-3,3)); if (parts.helmet && parts.head) parts.helmet.r = parts.head.r * 1.4 + getRandomInt(-2,2); if (parts.body && Math.random() < MUTATION_RATE) { parts.body.width = Math.max(10, parts.body.width + getRandomInt(-5,5)); parts.body.height = Math.max(10, parts.body.height + getRandomInt(-5,5)); }}}
+        function renderMan(manData, svgElement) { /* ... as before ... */ const { parts } = manData; const renderOrder = ['helmet', 'leftLeg', 'rightLeg', 'leftArm', 'rightArm', 'leftHand', 'rightHand', 'body', 'head']; renderOrder.forEach(partName => { const partData = parts[partName]; if (partData && partData.type) { const el = document.createElementNS("http://www.w3.org/2000/svg", partData.type); for (const attr in partData) { if (attr !== 'type' && !attr.endsWith('Path')) el.setAttribute(attr, partData[attr]); }  svgElement.appendChild(el); } }); }
+        function createInitialTreasureChestData() { /* ... as before ... */ const id = getGlobalUniqueId('chest'); const parts = {}; const baseColor = getRandomColor('rgb(139,69,19)', 30); const metalColor = getRandomColor('rgb(210,180,140)', 20); const chestWidth = getRandomInt(SVG_WIDTH * 0.3, SVG_WIDTH * 0.5); const chestHeight = getRandomInt(SVG_HEIGHT * 0.2, SVG_HEIGHT * 0.35); const chestX = SVG_WIDTH/2 - chestWidth/2; const chestY = SVG_HEIGHT * 0.85 - chestHeight; parts.base = { type: 'rect', x: chestX, y: chestY, width: chestWidth, height: chestHeight, fill: baseColor, stroke: darkenColor(baseColor, 30), 'stroke-width': 2, rx:3, ry:3 }; const isOpen = Math.random() < 0.4; const lidHeight = chestHeight * getRandomFloat(0.4, 0.6); if (isOpen) { parts.lid = { type: 'rect', x: chestX, y: chestY - lidHeight + 5, width: chestWidth, height: lidHeight, fill: baseColor, stroke: darkenColor(baseColor,30), 'stroke-width':2, rx:3, ry:3, transform: `rotate(-${getRandomInt(20,40)} ${chestX} ${chestY})` }; const numCoins = getRandomInt(3, 7); for(let i=0; i<numCoins; i++) { parts[`coin${i}`] = { type: 'circle', cx: chestX + chestWidth*0.2 + Math.random() * chestWidth * 0.6, cy: chestY + chestHeight*0.1 - Math.random() * chestHeight * 0.3, r: chestWidth * getRandomFloat(0.05, 0.1), fill: getRandomColor('rgb(255,215,0)', 20), stroke: darkenColor('rgb(255,215,0)',30), 'stroke-width':0.5 }; } } else { parts.lid = { type: 'rect', x: chestX, y: chestY - lidHeight, width: chestWidth, height: lidHeight, fill: baseColor, stroke: darkenColor(baseColor,30), 'stroke-width':2, rx:3, ry:3 }; } parts.band1 = { type: 'rect', x: chestX - 2, y: chestY + chestHeight*0.1, width: chestWidth+4, height: chestHeight*0.15, fill: metalColor, stroke: darkenColor(metalColor,20)}; parts.band2 = { type: 'rect', x: chestX - 2, y: chestY + chestHeight*0.75, width: chestWidth+4, height: chestHeight*0.15, fill: metalColor, stroke: darkenColor(metalColor,20)}; parts.lock = { type: 'circle', cx: chestX + chestWidth/2, cy: parts.lid.y + lidHeight/2, r: chestWidth*0.08, fill: metalColor, stroke: darkenColor(metalColor,30)}; return { id: id, type: 'chest', parts: parts, isOpen: isOpen }; }
+        function mutateTreasureChest(chestData, onlyRecolor = false, onlyRetexture = false) { /* ... as before ... */ const parts = chestData.parts; if (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE * 0.5) { chestData.isOpen = !chestData.isOpen; } if (onlyRecolor || (!onlyRetexture && Math.random() < MUTATION_RATE)) { const newBaseColor = getRandomColor(parts.base.fill, 20); parts.base.fill = newBaseColor; parts.lid.fill = newBaseColor; parts.base.stroke = darkenColor(newBaseColor, 30); parts.lid.stroke = darkenColor(newBaseColor, 30); const newMetalColor = getRandomColor((parts.band1 ? parts.band1.fill : 'rgb(210,180,140)'), 20); if(parts.band1) parts.band1.fill = newMetalColor; if(parts.band2) parts.band2.fill = newMetalColor; if(parts.lock) parts.lock.fill = newMetalColor; Object.keys(parts).filter(k => k.startsWith('coin')).forEach(k => { parts[k].fill = getRandomColor(parts[k].fill, 20); parts[k].stroke = darkenColor(parts[k].fill, 30); }); } }
+        function renderTreasureChest(chestData, svgElement) { /* ... as before ... */ const { parts } = chestData; const renderOrder = []; Object.keys(parts).filter(k => k.startsWith('coin')).forEach(k => renderOrder.push(k)); renderOrder.push('base', 'band1', 'band2', 'lid', 'lock'); renderOrder.forEach(partName => { const partData = parts[partName]; if (partData && partData.type) { const el = document.createElementNS("http://www.w3.org/2000/svg", partData.type); for (const attr in partData) { if (attr !== 'type') el.setAttribute(attr, partData[attr]); } svgElement.appendChild(el); } }); }
+        function createInitialSeaweedData() { /* ... as before ... */ const id = getGlobalUniqueId('seaweed'); const parts = {}; const numStrands = getRandomInt(2, 5); const baseColor = getRandomColor('rgb(30,120,30)', 30); for (let i = 0; i < numStrands; i++) { const strandWidth = getRandomInt(5, 12); const strandHeight = SVG_HEIGHT * getRandomFloat(0.4, 0.8); const startX = SVG_WIDTH * getRandomFloat(0.1, 0.9); const startY = SVG_HEIGHT * 0.95; let pathData = `M ${startX},${startY} `; const segments = getRandomInt(2,4); let currentX = startX; let currentY = startY; for(let j=0; j<segments; j++) { const cp1X = currentX + getRandomInt(-strandWidth*2, strandWidth*2); const cp1Y = currentY - strandHeight/(segments*1.5) + getRandomInt(-10,10); const cp2X = currentX + getRandomInt(-strandWidth*1.5, strandWidth*1.5); const cp2Y = currentY - strandHeight/segments * 1.2 + getRandomInt(-10,10); currentX = currentX + getRandomInt(-strandWidth, strandWidth); currentY = Math.max(SVG_HEIGHT*0.1, currentY - strandHeight/segments); pathData += `C ${cp1X},${cp1Y} ${cp2X},${cp2Y} ${currentX},${currentY} `; } parts[`strand${i}`] = { type: 'path', d: pathData, stroke: baseColor, 'stroke-width': strandWidth, fill: 'none', 'stroke-linecap':'round', 'stroke-opacity': getRandomFloat(0.7,1.0) }; } return { id: id, type: 'seaweed', parts: parts }; }
+        function mutateSeaweed(seaweedData, onlyRecolor = false, onlyRetexture = false) { /* ... as before ... */ const parts = seaweedData.parts; for (const partName in parts) { if (parts[partName].type === 'path') { if (onlyRecolor || (!onlyRetexture && Math.random() < MUTATION_RATE)) { parts[partName].stroke = getRandomColor(parts[partName].stroke, 20); } if (!onlyRecolor && !onlyRetexture && Math.random() < MUTATION_RATE) { parts[partName]['stroke-width'] = Math.max(2, (parts[partName]['stroke-width'] || 5) + getRandomInt(-2,2)); }}} }
+        function renderSeaweed(seaweedData, svgElement) { /* ... as before ... */ const { parts } = seaweedData; for (const partName in parts) { const partData = parts[partName]; if (partData && partData.type) { const el = document.createElementNS("http://www.w3.org/2000/svg", partData.type); for (const attr in partData) { if (attr !== 'type') el.setAttribute(attr, partData[attr]); } svgElement.appendChild(el); } } }
+
+
+        // --- Dispatcher for type-specific functions ---
+        const objectTypeFunctions = {
+            fish: { create: createInitialFishData, mutate: mutateFish, render: renderFish },
+            castle: { create: createInitialCastleData, mutate: mutateCastle, render: renderCastle },
+            man: { create: createInitialManData, mutate: mutateMan, render: renderMan },
+            rocks: { create: createInitialRockData, mutate: mutateRock, render: renderRock },
+            chest: { create: createInitialTreasureChestData, mutate: mutateTreasureChest, render: renderTreasureChest },
+            seaweed: { create: createInitialSeaweedData, mutate: mutateSeaweed, render: renderSeaweed },
+        };
+
+        // --- Genetic Algorithm Core ---
+        function crossover(parent1Data, parent2Data) { /* ... as before ... */ 
+            const childParts = {}; const p1Parts = parent1Data.parts; const p2Parts = parent2Data.parts;
+            for (const partName in p1Parts) { if (p1Parts.hasOwnProperty(partName)) { if (p2Parts.hasOwnProperty(partName) && Math.random() < 0.5) { childParts[partName] = clone(p2Parts[partName]); } else { childParts[partName] = clone(p1Parts[partName]); } } }
+            for (const partName in p2Parts) { if (p2Parts.hasOwnProperty(partName) && !childParts.hasOwnProperty(partName)) { childParts[partName] = clone(p2Parts[partName]); } }
+            let childSpecificProps = {}; 
+            if (parent1Data.type === 'rocks') { childSpecificProps.numRocks = Math.random() < 0.5 ? parent1Data.numRocks : parent2Data.numRocks; /* ... ensure correct num rock parts ... */ } 
+            if (parent1Data.type === 'chest') { childSpecificProps.isOpen = Math.random() < 0.5 ? parent1Data.isOpen : parent2Data.isOpen; }
+            // Copy other top-level properties like patternType for fish, hasTexture for castle, hasMoss for rocks
+            if (parent1Data.type === 'fish' && parent1Data.parts.body) {
+                childSpecificProps.patternType = Math.random() < 0.5 ? parent1Data.parts.body.patternType : (p2Parts.body ? p2Parts.body.patternType : parent1Data.parts.body.patternType);
+            }
+            if (parent1Data.type === 'castle' && parent1Data.parts.mainWall) {
+                 childSpecificProps.hasTexture = Math.random() < 0.5 ? parent1Data.parts.mainWall.hasTexture : (p2Parts.mainWall ? p2Parts.mainWall.hasTexture : parent1Data.parts.mainWall.hasTexture);
+            }
+            // For rocks, hasMoss is per-rock, handled within part crossover. numRocks is top-level.
+
+            return { id: `${parent1Data.type}-child-${getGlobalUniqueId()}`, type: parent1Data.type, ...childSpecificProps, parts: childParts };
+        }
+
+        // --- DOM Manipulation and Display ---
+        function renderObject(objectData) { /* ... as before ... */ 
+            const svgNS = "http://www.w3.org/2000/svg"; const svgElement = document.createElementNS(svgNS, "svg"); svgElement.setAttribute("width", SVG_WIDTH); svgElement.setAttribute("height", SVG_HEIGHT); svgElement.setAttribute("viewBox", `0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`); 
+            const renderer = objectTypeFunctions[objectData.type]?.render; if (renderer) { renderer(objectData, svgElement); } else { console.error("No renderer for type:", objectData.type); }
+            const container = document.createElement('div'); container.classList.add('svg-container', 'flex', 'items-center', 'justify-center', 'rounded-lg', 'overflow-hidden', 'bg-white', 'shadow'); container.appendChild(svgElement); container.dataset.svgId = objectData.id; container.addEventListener('click', () => handleSvgClick(objectData, container)); return container;
+        }
+        function displayPopulation() { /* ... as before ... */ 
+            populationContainer.innerHTML = ''; 
+            const populationToDisplay = populations[currentObjectType] || [];
+            populationToDisplay.forEach(objectData => {
+                const displayElement = renderObject(objectData);
+                populationContainer.appendChild(displayElement);
+                if (selectedParents.find(p => p.id === objectData.id && p.type === currentObjectType)) { displayElement.classList.add('selected'); }
+            });
+        }
+
+        // --- Event Handlers ---
+        tabButtons.forEach(button => { /* ... as before ... */ 
+            button.addEventListener('click', () => {
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                const newType = button.dataset.type;
+                if (newType !== currentObjectType) {
+                    currentObjectType = newType;
+                    showMessage(`${currentObjectType.charAt(0).toUpperCase() + currentObjectType.slice(1)} selected.`, 2000);
+                    selectedParents = []; 
+                    previousSelectedParents = []; 
+                    displayPopulation(); 
+                }
+            });
+        });
+        function handleSvgClick(objectData, containerElement) { /* ... as before ... */ 
+            if (objectData.type !== currentObjectType) { showMessage(`Cannot select. Active type is ${currentObjectType}, this is a ${objectData.type}.`, 3000); return; }
+            const index = selectedParents.findIndex(p => p.id === objectData.id);
+            if (index > -1) { selectedParents.splice(index, 1); containerElement.classList.remove('selected'); } 
+            else { if (selectedParents.length < NUM_PARENTS_REQUIRED) { selectedParents.push(objectData); containerElement.classList.add('selected'); } else { showMessage(`You can only select ${NUM_PARENTS_REQUIRED} parents for ${currentObjectType}s.`); } }
+        }
+        function handleGenerateClick() { /* ... as before ... */
+            if (selectedParents.length !== NUM_PARENTS_REQUIRED) { showMessage(`Please select exactly ${NUM_PARENTS_REQUIRED} parents for ${currentObjectType}s.`); return; }
+            previousSelectedParents = [...selectedParents]; 
+            const newPopulation = []; const mutator = objectTypeFunctions[currentObjectType]?.mutate;
+            for (let i = 0; i < POPULATION_SIZE; i++) { const parent1 = selectedParents[0]; const parent2 = selectedParents[1]; let child = crossover(parent1, parent2); if (mutator) { mutator(child, false, false); } else { console.warn("No mutator for type:", currentObjectType); } newPopulation.push(child); } // Pass false, false for full mutation
+            populations[currentObjectType] = newPopulation; selectedParents = []; displayPopulation(); showMessage(`New generation of ${currentObjectType}s created!`, 2000);
+         }
+        function handlePrevParentsClick() { /* ... as before ... */ 
+            if (previousSelectedParents.length !== NUM_PARENTS_REQUIRED) { showMessage("No previous parents stored or not enough parents.", 2500); return; }
+            if (previousSelectedParents.some(p => p.type !== currentObjectType)) { showMessage(`Previous parents are for a different object type (${previousSelectedParents[0].type}). Select new parents for ${currentObjectType}s.`, 3500); previousSelectedParents = []; return; }
+            selectedParents = [...previousSelectedParents]; displayPopulation(); showMessage("Restored previous parents.", 2000);
+        }
+        function handleRecolorClick() { /* ... as before ... */ 
+            const currentPop = populations[currentObjectType]; if (!currentPop || currentPop.length === 0) { showMessage("Generate a population first to recolor!", 2500); return; }
+            const mutator = objectTypeFunctions[currentObjectType]?.mutate; if (!mutator) { showMessage(`Recoloring not implemented for ${currentObjectType}.`, 2500); return; }
+            currentPop.forEach(item => { mutator(item, true, false); }); selectedParents = []; previousSelectedParents = []; displayPopulation(); showMessage(`${currentObjectType.charAt(0).toUpperCase() + currentObjectType.slice(1)}s recolored!`, 2000);
+        }
+        function handleRetextureClick() { // New Handler
+            const currentPop = populations[currentObjectType];
+            if (!currentPop || currentPop.length === 0) {
+                showMessage("Generate a population first to retexture!", 2500);
+                return;
+            }
+            const mutator = objectTypeFunctions[currentObjectType]?.mutate;
+            if (!mutator) {
+                showMessage(`Retexturing not implemented for ${currentObjectType}.`, 2500);
+                return;
+            }
+            currentPop.forEach(item => {
+                mutator(item, false, true); // Call mutate with onlyRetexture = true
+            });
+            selectedParents = []; // Clear selections as visuals changed
+            previousSelectedParents = [];
+            displayPopulation(); 
+            showMessage(`${currentObjectType.charAt(0).toUpperCase() + currentObjectType.slice(1)}s retextured!`, 2000);
+        }
+        function handleResetClick() { /* ... as before ... */ 
+            POPULATION_SIZE = parseInt(populationSizeInput.value) || 6; MUTATION_RATE = parseFloat(mutationRateInput.value) || 0.1;
+            if (POPULATION_SIZE < 2 || POPULATION_SIZE > 20) { /* validation */ return; } if (MUTATION_RATE < 0 || MUTATION_RATE > 1) { /* validation */ return; }
+            const createFunction = objectTypeFunctions[currentObjectType]?.create;
+            if (createFunction) { populations[currentObjectType] = []; for (let i = 0; i < POPULATION_SIZE; i++) { populations[currentObjectType].push(createFunction()); } selectedParents = []; previousSelectedParents = []; displayPopulation(); showMessage(`Population for ${currentObjectType}s reset!`, 2000); } else { console.error("No create function for type:", currentObjectType); }
+        }
+
+        // --- Initialization ---
+        function initializeAllPopulations() { /* ... as before ... */ 
+            Object.keys(objectTypeFunctions).forEach(type => { const createFunction = objectTypeFunctions[type]?.create; if (createFunction) { populations[type] = []; for (let i = 0; i < POPULATION_SIZE; i++) { populations[type].push(createFunction()); } } else { console.error("No create function for type during initial setup:", type); populations[type] = []; } });
+            displayPopulation(); 
+        }
+
+        // --- Event Listeners ---
+        generateButton.addEventListener('click', handleGenerateClick);
+        prevParentsButton.addEventListener('click', handlePrevParentsClick);
+        recolorButton.addEventListener('click', handleRecolorClick); 
+        retextureButton.addEventListener('click', handleRetextureClick); // New Listener
+        resetButton.addEventListener('click', handleResetClick);
+        mutationRateInput.addEventListener('change', () => { const newRate = parseFloat(mutationRateInput.value); if (newRate >= 0 && newRate <= 1) { MUTATION_RATE = newRate; showMessage("Mutation rate updated.", 1500); } else { mutationRateInput.value = MUTATION_RATE; showMessage("Invalid mutation rate.", 2500); } });
+        populationSizeInput.addEventListener('change', () => { const newSize = parseInt(populationSizeInput.value); if (newSize >=2 && newSize <=12) { POPULATION_SIZE = newSize; showMessage("Population size changed. Reset a tab's population to apply to new generations.", 3000); } else { populationSizeInput.value = POPULATION_SIZE; showMessage("Population size must be between 2 and 12.", 2500); } });
+
+        // --- Start ---
+        initializeAllPopulations(); 
+    </script>
+</body>
+</html>

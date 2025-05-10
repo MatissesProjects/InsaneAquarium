@@ -30,12 +30,6 @@ export const GameState = {
     },
 
     getFoodLevel() {
-        // if (_foodLevel == 1) {
-        //     return 'LEVEL1';
-        // }
-        // else {
-        //     return 'LEVEL2';
-        // }
         return _foodLevel;
     },
     setFoodLevel(newLevel) {

@@ -166,13 +166,13 @@ for (let i = 0; i < 2; i++) {
         hungerRate: HUNGER_RATE * (0.8 + Math.random() * 0.4),
     });
 }
-new Snail({});
-new Snail({});
-new Snail({});
-new Snail({});
-new Snail({});
-new Snail({});
-new Snail({});
+new Snail({x: SVG_WIDTH * Math.random()});
+new Snail({x: SVG_WIDTH * Math.random()});
+new Snail({x: SVG_WIDTH * Math.random()});
+new Snail({x: SVG_WIDTH * Math.random()});
+new Snail({x: SVG_WIDTH * Math.random()});
+new Snail({x: SVG_WIDTH * Math.random()});
+new Snail({x: SVG_WIDTH * Math.random()});
 new BreederFish({
     x: SVG_WIDTH * 0.75, // Example position
     y: SVG_HEIGHT * 0.5,
@@ -204,7 +204,8 @@ function spawnBoss() {
         return;
     }
     console.log("Spawning Boss!");
-    GameState.spawnBoss();
+    const newBoss = new Boss({});
+    GameState.setBossActive(newBoss);        
     // bus.emit('bossSpawned', { boss: newBoss });
 }
 
