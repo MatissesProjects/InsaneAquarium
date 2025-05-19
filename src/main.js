@@ -43,7 +43,7 @@ function setupShopUI() {
     shopContainer.style.top = '10px';
     shopContainer.style.right = '10px';
     shopContainer.style.display = 'flex';
-    shopContainer.style.flexDirection = 'column';
+    shopContainer.style.flexDirection = 'row';
     shopContainer.style.gap = '5px';
     shopContainer.style.padding = '10px';
     shopContainer.style.backgroundColor = 'rgba(54, 53, 20, 0.42)';

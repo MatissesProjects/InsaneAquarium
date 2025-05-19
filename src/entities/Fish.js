@@ -153,25 +153,14 @@ export class Fish extends Entity {
             this.r *= FISH_LEVEL_RADIUS_MULTIPLIER;
             this.speed *= FISH_LEVEL_SPEED_MULTIPLIER;
             this.dropInterval *= FISH_LEVEL_DROP_INTERVAL_MULTIPLIER;
-            // console.log(`   Now drops coin value ${this.coinDropValue}, needs ${this.nextUpgradeThreshold} food for Lvl 3.`);
         } else if (this.level === 3) {
-            this.canDropCoins = true;
             this.coinDropType = type;
             this.coinDropValue = coinData.value;
             this.nextUpgradeThreshold = FISH_FOOD_TO_LEVEL_4;
-            this.r *= FISH_LEVEL_RADIUS_MULTIPLIER;
-            this.speed *= FISH_LEVEL_SPEED_MULTIPLIER;
-            this.dropInterval *= FISH_LEVEL_DROP_INTERVAL_MULTIPLIER;
-            // console.log(`   Now drops coin value ${this.coinDropValue}. Max level reached.`);
         } else if (this.level === 4) {
-            this.canDropCoins = true;
             this.coinDropType = type;
             this.coinDropValue = coinData.value;
             this.nextUpgradeThreshold = Infinity;
-            this.r *= FISH_LEVEL_RADIUS_MULTIPLIER;
-            this.speed *= FISH_LEVEL_SPEED_MULTIPLIER;
-            this.dropInterval *= FISH_LEVEL_DROP_INTERVAL_MULTIPLIER;
-            // console.log(`   Now drops coin value ${this.coinDropValue}. Max level reached.`);
         }
 
         bus.emit('fishUpgraded', this);

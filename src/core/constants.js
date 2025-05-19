@@ -77,6 +77,6 @@ export const COIN_TYPES = {
 };
 
 export const FOOD_TYPES = {
-  1: { nextCost: 200, nutrition: 1,   asset: ASSETS.FOOD_1, lifespan: BASE_FOOD_LIFETIME, radius: FOOD_RADIUS, },
+  1: { nextCost: 100, nutrition: 1,   asset: ASSETS.FOOD_1, lifespan: BASE_FOOD_LIFETIME, radius: FOOD_RADIUS, },
   2: { nextCost: 500, nutrition: 1.5, asset: ASSETS.FOOD_2, lifespan: BASE_FOOD_LIFETIME * 1.25, radius: FOOD_RADIUS * .75, },
 };
